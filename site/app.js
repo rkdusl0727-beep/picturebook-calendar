@@ -33,6 +33,7 @@ document.querySelector('#nextMonth').addEventListener('click', () => changeMonth
 document.querySelector('#saveButton').addEventListener('click', saveCalendarImage);
 closeModal.addEventListener('click', closeBookModal);
 clearDateButton.addEventListener('click', clearSelectedDate);
+
 bookModal.addEventListener('click', (event) => {
   if (event.target === bookModal) {
     closeBookModal();
@@ -124,10 +125,15 @@ function render() {
       ` : ''}
       ${entry?.kind === 'substitute' || isNoBookInputDay ? '' : `
         <span class="day-title-row">
-          <input class="day-title-input" type="text" value="${escapeHtml(entry?.title || '')}" placeholder="그림책 제목" aria-label="${dateKey} 그림책 제목">
+          <input class="day-title-input" type="text" inputmode="text" autocomplete="off" value="${escapeHtml(entry?.title || '')}" placeholder="그림책 제목" aria-label="${dateKey} 그림책 제목">
         </span>
       `}
     `;
+
+    if (!isNoBookInputDay && entry?.kind !== 'substitute') {
+      cell.classList.add('has-title-input');
+      cell.removeAttribute('role');
+    }
 
     cell.addEventListener('click', (event) => {
       if (isWeekend) {
@@ -144,7 +150,7 @@ function render() {
       if (query) {
         openBookModal(dateKey, query);
       } else if (input) {
-        input.focus();
+        focusTitleInput(input);
       } else {
         openSubstituteModal(dateKey);
       }
@@ -168,7 +174,7 @@ function render() {
         if (query) {
           openBookModal(dateKey, query);
         } else if (input) {
-          input.focus();
+          focusTitleInput(input);
         } else {
           openSubstituteModal(dateKey);
         }
@@ -217,6 +223,15 @@ function render() {
   });
 
   renderCoverResults();
+}
+
+function focusTitleInput(input) {
+  input.focus({ preventScroll: true });
+
+  if (typeof input.setSelectionRange === 'function') {
+    const length = input.value.length;
+    input.setSelectionRange(length, length);
+  }
 }
 
 function clearWeekendEntries() {
