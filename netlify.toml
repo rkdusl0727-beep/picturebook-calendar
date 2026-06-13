@@ -1,0 +1,14 @@
+[build]
+  publish = "site"
+  functions = "netlify/functions"
+  command = "npm run build"
+
+[[redirects]]
+  from = "/api/search-books"
+  to = "/.netlify/functions/search-books"
+  status = 200
+
+[[redirects]]
+  from = "/api/holidays"
+  to = "/.netlify/functions/holidays"
+  status = 200

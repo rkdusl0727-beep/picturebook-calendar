@@ -1,0 +1,11 @@
+{
+  "name": "picture-book-calendar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/local-server.mjs",
+    "check": "node --check netlify/functions/search-books.mjs && node --check netlify/functions/holidays.mjs && node --check scripts/local-server.mjs && node --check scripts/build.mjs"
+  }
+}
