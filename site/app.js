@@ -5,6 +5,9 @@ const state = {
   searchResults: [],
   holidaysByYear: {},
   holidayLoadingYears: new Set(),
+  drafts: {},
+  isEditingTitle: false,
+  isComposingTitle: false,
   entries: loadEntries()
 };
 
@@ -74,6 +77,7 @@ function render() {
     const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + index);
     const dateKey = toDateKey(date);
     const entry = state.entries[dateKey];
+    const draftTitle = state.drafts[dateKey] ?? entry?.title ?? '';
     const holiday = state.holidaysByYear[date.getFullYear()]?.[dateKey];
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
     const isNoBookInputDay = isWeekend || Boolean(holiday);
@@ -125,7 +129,7 @@ function render() {
       ` : ''}
       ${entry?.kind === 'substitute' || isNoBookInputDay ? '' : `
         <span class="day-title-row">
-          <input class="day-title-input" type="text" inputmode="text" autocomplete="off" value="${escapeHtml(entry?.title || '')}" placeholder="그림책 제목" aria-label="${dateKey} 그림책 제목">
+          <input class="day-title-input" type="text" inputmode="text" autocomplete="off" value="${escapeHtml(draftTitle)}" placeholder="그림책 제목" aria-label="${dateKey} 그림책 제목">
         </span>
       `}
     `;
@@ -187,15 +191,50 @@ function render() {
   grid.querySelectorAll('.day-title-input').forEach((input) => {
     input.addEventListener('click', (event) => event.stopPropagation());
 
-    input.addEventListener('input', () => {
+    input.addEventListener('focus', () => {
+      state.isEditingTitle = true;
+      state.selectedDate = input.closest('.day').dataset.date;
+    });
+
+    input.addEventListener('blur', () => {
+      state.isEditingTitle = false;
+
       const dateKey = input.closest('.day').dataset.date;
       const entry = state.entries[dateKey];
 
       if (!input.value.trim() && entry?.kind !== 'substitute') {
         delete state.entries[dateKey];
+        delete state.drafts[dateKey];
         saveEntries();
         render();
       }
+    });
+
+    input.addEventListener('compositionstart', () => {
+      state.isComposingTitle = true;
+    });
+
+    input.addEventListener('compositionend', () => {
+      state.isComposingTitle = false;
+
+      const dateKey = input.closest('.day').dataset.date;
+      const draftTitle = input.value;
+
+      if (draftTitle.trim()) {
+        state.drafts[dateKey] = draftTitle;
+      }
+    });
+
+    input.addEventListener('input', () => {
+      const dateKey = input.closest('.day').dataset.date;
+      const draftTitle = input.value;
+
+      if (draftTitle.trim()) {
+        state.drafts[dateKey] = draftTitle;
+        return;
+      }
+
+      delete state.drafts[dateKey];
     });
 
     input.addEventListener('keydown', (event) => {
@@ -242,6 +281,7 @@ function clearWeekendEntries() {
 
     if (date.getDay() === 0 || date.getDay() === 6) {
       delete state.entries[dateKey];
+      delete state.drafts[dateKey];
       changed = true;
     }
   });
@@ -286,6 +326,11 @@ async function ensureHolidays(year) {
     state.holidaysByYear[year] = {};
   } finally {
     state.holidayLoadingYears.delete(year);
+
+    if (state.isEditingTitle || state.isComposingTitle || Object.keys(state.drafts).length) {
+      return;
+    }
+
     render();
   }
 }
@@ -376,6 +421,7 @@ function selectCover(index) {
   }
 
   state.entries[state.selectedDate] = book;
+  delete state.drafts[state.selectedDate];
   saveEntries();
   render();
   setStatus(`${state.selectedDate}에 표지를 넣었습니다.`);
@@ -395,6 +441,7 @@ function selectSubstitute(index) {
     thumbnail: substitute.thumbnail
   };
 
+  delete state.drafts[state.selectedDate];
   saveEntries();
   render();
   setStatus(`${state.selectedDate}에 ${substitute.title} 이미지를 넣었습니다.`);
@@ -407,6 +454,7 @@ function clearSelectedDate() {
   }
 
   delete state.entries[state.selectedDate];
+  delete state.drafts[state.selectedDate];
   saveEntries();
   closeBookModal();
   render();
