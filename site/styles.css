@@ -559,9 +559,9 @@ input {
   }
 
   .day-title-input {
-    min-height: 22px;
-    font-size: .58rem;
-    padding: 2px 4px;
+    min-height: 28px;
+    font-size: .68rem;
+    padding: 4px 5px;
   }
 
   .book-count {
@@ -645,7 +645,8 @@ input {
   }
 
   .day-title-input {
-    min-height: 20px;
-    font-size: .52rem;
+    min-height: 26px;
+    font-size: .62rem;
+    padding: 3px 4px;
   }
 }
