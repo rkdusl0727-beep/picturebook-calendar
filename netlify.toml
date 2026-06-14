@@ -12,3 +12,8 @@
   from = "/api/holidays"
   to = "/.netlify/functions/holidays"
   status = 200
+
+[[redirects]]
+  from = "/api/image-proxy"
+  to = "/.netlify/functions/image-proxy"
+  status = 200
