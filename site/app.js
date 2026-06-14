@@ -124,7 +124,7 @@ function render() {
       ${holiday ? `<span class="holiday-name">${escapeHtml(holiday.localName || holiday.name)}</span>` : ''}
       ${entry ? `
         <span class="book-in-day">
-          ${entry.thumbnail ? `<img class="cover" src="${escapeHtml(entry.thumbnail)}" alt="${escapeHtml(entry.title)}">` : '<span class="cover empty-cover">표지 없음</span>'}
+          ${entry.thumbnail ? `<img class="cover" src="${escapeHtml(proxiedImageUrl(entry.thumbnail))}" alt="${escapeHtml(entry.title)}">` : '<span class="cover empty-cover">표지 없음</span>'}
         </span>
       ` : ''}
       ${entry?.kind === 'substitute' || isNoBookInputDay ? '' : `
@@ -421,6 +421,7 @@ function selectCover(index) {
   }
 
   state.entries[state.selectedDate] = book;
+  state.entries[state.selectedDate].thumbnail = proxiedImageUrl(book.thumbnail);
   delete state.drafts[state.selectedDate];
   saveEntries();
   render();
@@ -487,7 +488,7 @@ function renderCoverResults() {
     <div class="cover-grid">
       ${state.searchResults.map((book, index) => `
         <button class="cover-choice" type="button" data-cover-index="${index}" title="${escapeHtml(book.title)}">
-          ${book.thumbnail ? `<img src="${escapeHtml(book.thumbnail)}" alt="">` : '<span class="empty-cover">표지 없음</span>'}
+          ${book.thumbnail ? `<img src="${escapeHtml(proxiedImageUrl(book.thumbnail))}" alt="">` : '<span class="empty-cover">표지 없음</span>'}
           <span>${escapeHtml(book.title)}</span>
         </button>
       `).join('')}
@@ -503,6 +504,8 @@ function renderCoverResults() {
 
 async function saveCalendarImage() {
   const calendar = document.querySelector('#calendar');
+  await waitForImages(calendar);
+
   const canvas = await html2canvas(calendar, {
     backgroundColor: null,
     scale: 3,
@@ -513,6 +516,29 @@ async function saveCalendarImage() {
   link.download = `${monthLabel.textContent.replaceAll(' ', '-')}-${calendarTitle.value || '그림책 달력'}.png`;
   link.href = canvas.toDataURL('image/png');
   link.click();
+}
+
+function proxiedImageUrl(url) {
+  if (!url || url.startsWith('data:') || url.startsWith('/api/image-proxy')) {
+    return url || '';
+  }
+
+  return `/api/image-proxy?url=${encodeURIComponent(url)}`;
+}
+
+async function waitForImages(root) {
+  const images = Array.from(root.querySelectorAll('img'));
+
+  await Promise.all(images.map((image) => {
+    if (image.complete && image.naturalWidth > 0) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+      image.addEventListener('load', resolve, { once: true });
+      image.addEventListener('error', resolve, { once: true });
+    });
+  }));
 }
 
 function loadEntries() {
