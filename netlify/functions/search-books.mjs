@@ -47,6 +47,8 @@ export async function handler(event) {
     });
   }
 
+  const books = await Promise.all((payload.items || []).map(toBook));
+
   return json(200, {
     meta: {
       total: payload.total,
@@ -54,17 +56,20 @@ export async function handler(event) {
       display: payload.display,
       lastBuildDate: payload.lastBuildDate
     },
-    books: (payload.items || []).map(toBook)
+    books
   });
 }
 
-function toBook(item) {
+async function toBook(item) {
+  const imageUrl = normalizeImageUrl(item.image);
+
   return {
     title: stripTags(item.title),
     authors: splitAuthors(item.author),
     publisher: item.publisher || '',
     isbn: item.isbn || '',
-    thumbnail: normalizeImageUrl(item.image),
+    thumbnail: await imageToDataUrl(imageUrl),
+    originalThumbnail: imageUrl,
     url: item.link || '',
     contents: stripTags(item.description || ''),
     publishedAt: item.pubdate || '',
@@ -95,6 +100,37 @@ function splitAuthors(value) {
 
 function normalizeImageUrl(value) {
   return String(value || '').replace(/^http:\/\//, 'https://');
+}
+
+async function imageToDataUrl(url) {
+  if (!url) {
+    return '';
+  }
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'user-agent': 'picturebook-calendar/1.0'
+      }
+    });
+
+    if (!response.ok) {
+      return url;
+    }
+
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+
+    if (!contentType.startsWith('image/')) {
+      return url;
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const base64 = Buffer.from(arrayBuffer).toString('base64');
+
+    return `data:${contentType};base64,${base64}`;
+  } catch {
+    return url;
+  }
 }
 
 function json(statusCode, body) {
