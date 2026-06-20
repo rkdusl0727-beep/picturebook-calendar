@@ -140,7 +140,6 @@ function render() {
       if (event.target.closest('.day-title-row')) {
         return;
       }
-
       const input = cell.querySelector('.day-title-input');
       const query = input?.value.trim() || '';
 
@@ -152,7 +151,6 @@ function render() {
         openSubstituteModal(dateKey);
       }
     });
-
     cell.addEventListener('keydown', (event) => {
       if (isWeekend) {
         return;
@@ -176,7 +174,6 @@ function render() {
         }
       }
     });
-
     grid.append(cell);
   }
 
@@ -478,7 +475,10 @@ function renderCoverResults() {
 
 async function saveCalendarImage() {
   const calendar = document.querySelector('#calendar');
+  const titlePreview = createTitlePreview();
   calendar.classList.add('capture-mode');
+  calendarTitle.hidden = true;
+  calendarTitle.insertAdjacentElement('afterend', titlePreview);
 
   try {
     await nextFrame();
@@ -531,8 +531,17 @@ async function saveCalendarImage() {
     link.click();
     URL.revokeObjectURL(link.href);
   } finally {
+    titlePreview.remove();
+    calendarTitle.hidden = false;
     calendar.classList.remove('capture-mode');
   }
+}
+
+function createTitlePreview() {
+  const preview = document.createElement('div');
+  preview.className = 'brand-title-preview';
+  preview.textContent = calendarTitle.value.trim() || '그림책 달력';
+  return preview;
 }
 
 function canvasToBlob(canvas) {
