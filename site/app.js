@@ -36,18 +36,15 @@ document.querySelector('#nextMonth').addEventListener('click', () => changeMonth
 document.querySelector('#saveButton').addEventListener('click', saveCalendarImage);
 closeModal.addEventListener('click', closeBookModal);
 clearDateButton.addEventListener('click', clearSelectedDate);
-
 bookModal.addEventListener('click', (event) => {
   if (event.target === bookModal) {
     closeBookModal();
   }
 });
-
 calendarTitle.value = localStorage.getItem('picture-book-calendar-title') || calendarTitle.value;
 calendarTitle.addEventListener('input', () => {
   localStorage.setItem('picture-book-calendar-title', calendarTitle.value.trim() || '그림책 달력');
 });
-
 render();
 
 function changeMonth(offset) {
@@ -58,17 +55,14 @@ function changeMonth(offset) {
 
 function render() {
   clearWeekendEntries();
-
   const year = state.cursor.getFullYear();
   const month = state.cursor.getMonth();
   const first = new Date(year, month, 1);
   const start = new Date(year, month, 1 - first.getDay());
   const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 41);
-
   ensureHolidays(year);
   ensureHolidays(start.getFullYear());
   ensureHolidays(end.getFullYear());
-
   monthLabel.textContent = `${year}년 ${month + 1}월`;
   updateBookCount(year, month);
   grid.innerHTML = '';
@@ -81,7 +75,6 @@ function render() {
     const holiday = state.holidaysByYear[date.getFullYear()]?.[dateKey];
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
     const isNoBookInputDay = isWeekend || Boolean(holiday);
-
     const cell = document.createElement('div');
     cell.tabIndex = 0;
     cell.role = 'button';
@@ -171,7 +164,6 @@ function render() {
 
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
-
         const input = cell.querySelector('.day-title-input');
         const query = input?.value.trim() || '';
 
@@ -190,15 +182,12 @@ function render() {
 
   grid.querySelectorAll('.day-title-input').forEach((input) => {
     input.addEventListener('click', (event) => event.stopPropagation());
-
     input.addEventListener('focus', () => {
       state.isEditingTitle = true;
       state.selectedDate = input.closest('.day').dataset.date;
     });
-
     input.addEventListener('blur', () => {
       state.isEditingTitle = false;
-
       const dateKey = input.closest('.day').dataset.date;
       const entry = state.entries[dateKey];
 
@@ -209,14 +198,11 @@ function render() {
         render();
       }
     });
-
     input.addEventListener('compositionstart', () => {
       state.isComposingTitle = true;
     });
-
     input.addEventListener('compositionend', () => {
       state.isComposingTitle = false;
-
       const dateKey = input.closest('.day').dataset.date;
       const draftTitle = input.value;
 
@@ -224,7 +210,6 @@ function render() {
         state.drafts[dateKey] = draftTitle;
       }
     });
-
     input.addEventListener('input', () => {
       const dateKey = input.closest('.day').dataset.date;
       const draftTitle = input.value;
@@ -236,7 +221,6 @@ function render() {
 
       delete state.drafts[dateKey];
     });
-
     input.addEventListener('keydown', (event) => {
       event.stopPropagation();
 
@@ -249,7 +233,6 @@ function render() {
       }
 
       event.preventDefault();
-
       const dateKey = input.closest('.day').dataset.date;
       const query = input.value.trim();
 
@@ -281,7 +264,6 @@ function clearWeekendEntries() {
 
     if (date.getDay() === 0 || date.getDay() === 6) {
       delete state.entries[dateKey];
-      delete state.drafts[dateKey];
       changed = true;
     }
   });
@@ -294,7 +276,6 @@ function clearWeekendEntries() {
 function updateBookCount(year, month) {
   const count = Object.keys(state.entries).filter((date) => {
     const entryDate = new Date(date);
-
     return entryDate.getFullYear() === year
       && entryDate.getMonth() === month
       && state.entries[date]?.kind !== 'substitute';
@@ -339,13 +320,10 @@ function openBookModal(dateKey, query = '') {
   state.selectedDate = dateKey;
   state.modalQuery = query.trim();
   state.searchResults = [];
-
   const selectedBook = state.entries[dateKey];
   const searchQuery = query || selectedBook?.title || '';
-
   modalTitle.textContent = searchQuery ? `"${searchQuery}" 표지를 골라주세요` : '제목을 입력해 주세요';
   bookModal.hidden = false;
-
   render();
   renderCoverResults();
   updateClearDateButton();
@@ -360,10 +338,8 @@ function openSubstituteModal(dateKey) {
   state.selectedDate = dateKey;
   state.modalQuery = '';
   state.searchResults = [];
-
   modalTitle.textContent = `${dateKey}에 넣을 이미지를 골라주세요`;
   bookModal.hidden = false;
-
   render();
   renderCoverResults();
   updateClearDateButton();
@@ -407,7 +383,7 @@ async function searchBookCovers(query) {
 
 function toUserSearchError(message) {
   if (String(message || '').includes('NAVER_CLIENT')) {
-    return '네이버 API 키가 아직 설정되지 않았습니다. Netlify 환경변수에 NAVER_CLIENT_ID와 NAVER_CLIENT_SECRET을 넣고 다시 배포해야 검색됩니다.';
+    return '네이버 API 키가 아직 설정되지 않았습니다. .env에 NAVER_CLIENT_ID와 NAVER_CLIENT_SECRET을 넣고 서버를 다시 켜야 검색됩니다.';
   }
 
   return message || '표지 검색에 실패했습니다.';
@@ -441,7 +417,6 @@ function selectSubstitute(index) {
     title: substitute.title,
     thumbnail: substitute.thumbnail
   };
-
   delete state.drafts[state.selectedDate];
   saveEntries();
   render();
@@ -480,7 +455,6 @@ function renderCoverResults() {
     coverResults.querySelectorAll('[data-substitute-index]').forEach((button) => {
       button.addEventListener('click', () => selectSubstitute(Number(button.dataset.substituteIndex)));
     });
-
     return;
   }
 
@@ -504,18 +478,119 @@ function renderCoverResults() {
 
 async function saveCalendarImage() {
   const calendar = document.querySelector('#calendar');
+  await inlineCalendarImages(calendar);
   await waitForImages(calendar);
 
   const canvas = await html2canvas(calendar, {
     backgroundColor: null,
     scale: 3,
-    useCORS: true
+    useCORS: true,
+    imageTimeout: 15000
   });
 
+  const fileName = `${monthLabel.textContent.replaceAll(' ', '-')}-${calendarTitle.value || '그림책 달력'}.png`;
+  const blob = await canvasToBlob(canvas);
+  const file = new File([blob], fileName, { type: 'image/png' });
+
+  if (isMobileDevice() && navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: calendarTitle.value || '그림책 달력'
+      });
+      return;
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        return;
+      }
+    }
+  }
+
+  if (!isMobileDevice() && window.showSaveFilePicker) {
+    try {
+      await saveWithFilePicker(blob, fileName);
+      return;
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        return;
+      }
+    }
+  }
+
   const link = document.createElement('a');
-  link.download = `${monthLabel.textContent.replaceAll(' ', '-')}-${calendarTitle.value || '그림책 달력'}.png`;
-  link.href = canvas.toDataURL('image/png');
+  link.download = fileName;
+  link.href = URL.createObjectURL(blob);
   link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+function canvasToBlob(canvas) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+        return;
+      }
+
+      reject(new Error('이미지를 만들지 못했습니다.'));
+    }, 'image/png');
+  });
+}
+
+async function saveWithFilePicker(blob, suggestedName) {
+  const handle = await window.showSaveFilePicker({
+    suggestedName,
+    types: [
+      {
+        description: 'PNG 이미지',
+        accept: {
+          'image/png': ['.png']
+        }
+      }
+    ]
+  });
+  const writable = await handle.createWritable();
+  await writable.write(blob);
+  await writable.close();
+}
+
+function isMobileDevice() {
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+    || (navigator.maxTouchPoints > 1 && /Macintosh/i.test(navigator.userAgent));
+}
+
+async function inlineCalendarImages(root) {
+  const images = Array.from(root.querySelectorAll('img'));
+
+  await Promise.all(images.map(async (image) => {
+    if (image.src.startsWith('data:')) {
+      return;
+    }
+
+    try {
+      const dataUrl = await imageSrcToDataUrl(image.src);
+      image.src = dataUrl;
+    } catch {
+      // If conversion fails, keep the original image so the screen is not disturbed.
+    }
+  }));
+}
+
+async function imageSrcToDataUrl(src) {
+  const response = await fetch(src);
+
+  if (!response.ok) {
+    throw new Error('이미지를 불러오지 못했습니다.');
+  }
+
+  const blob = await response.blob();
+
+  return await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener('load', () => resolve(reader.result));
+    reader.addEventListener('error', reject);
+    reader.readAsDataURL(blob);
+  });
 }
 
 function proxiedImageUrl(url) {
