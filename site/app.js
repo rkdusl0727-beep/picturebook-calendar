@@ -478,50 +478,61 @@ function renderCoverResults() {
 
 async function saveCalendarImage() {
   const calendar = document.querySelector('#calendar');
-  await inlineCalendarImages(calendar);
-  await waitForImages(calendar);
+  calendar.classList.add('capture-mode');
 
-  const canvas = await html2canvas(calendar, {
-    backgroundColor: null,
-    scale: 3,
-    useCORS: true,
-    imageTimeout: 15000
-  });
+  try {
+    await nextFrame();
+    await inlineCalendarImages(calendar);
+    await waitForImages(calendar);
 
-  const fileName = `${monthLabel.textContent.replaceAll(' ', '-')}-${calendarTitle.value || '그림책 달력'}.png`;
-  const blob = await canvasToBlob(canvas);
-  const file = new File([blob], fileName, { type: 'image/png' });
+    const canvas = await html2canvas(calendar, {
+      backgroundColor: null,
+      scale: 3,
+      useCORS: true,
+      imageTimeout: 15000,
+      windowWidth: calendar.scrollWidth,
+      windowHeight: calendar.scrollHeight,
+      width: calendar.scrollWidth,
+      height: calendar.scrollHeight
+    });
 
-  if (isMobileDevice() && navigator.canShare?.({ files: [file] })) {
-    try {
-      await navigator.share({
-        files: [file],
-        title: calendarTitle.value || '그림책 달력'
-      });
-      return;
-    } catch (error) {
-      if (error.name === 'AbortError') {
+    const fileName = `${monthLabel.textContent.replaceAll(' ', '-')}-${calendarTitle.value || '그림책 달력'}.png`;
+    const blob = await canvasToBlob(canvas);
+    const file = new File([blob], fileName, { type: 'image/png' });
+
+    if (isMobileDevice() && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: calendarTitle.value || '그림책 달력'
+        });
         return;
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          return;
+        }
       }
     }
-  }
 
-  if (!isMobileDevice() && window.showSaveFilePicker) {
-    try {
-      await saveWithFilePicker(blob, fileName);
-      return;
-    } catch (error) {
-      if (error.name === 'AbortError') {
+    if (!isMobileDevice() && window.showSaveFilePicker) {
+      try {
+        await saveWithFilePicker(blob, fileName);
         return;
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          return;
+        }
       }
     }
-  }
 
-  const link = document.createElement('a');
-  link.download = fileName;
-  link.href = URL.createObjectURL(blob);
-  link.click();
-  URL.revokeObjectURL(link.href);
+    const link = document.createElement('a');
+    link.download = fileName;
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    URL.revokeObjectURL(link.href);
+  } finally {
+    calendar.classList.remove('capture-mode');
+  }
 }
 
 function canvasToBlob(canvas) {
@@ -535,6 +546,10 @@ function canvasToBlob(canvas) {
       reject(new Error('이미지를 만들지 못했습니다.'));
     }, 'image/png');
   });
+}
+
+function nextFrame() {
+  return new Promise((resolve) => requestAnimationFrame(() => resolve()));
 }
 
 async function saveWithFilePicker(blob, suggestedName) {
