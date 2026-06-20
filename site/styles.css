@@ -86,11 +86,15 @@ button {
 }
 
 .calendar-card.capture-mode .brand-input {
-  width: min(460px, calc(100% - 112px)) !important;
-  min-height: 56px !important;
-  font-size: 2.34rem !important;
+  width: min(560px, calc(100% - 112px)) !important;
+  min-height: 72px !important;
+  height: auto !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  font-size: 2.22rem !important;
   line-height: 1.2 !important;
-  padding: 8px 8px !important;
+  padding: 8px 10px !important;
 }
 
 .calendar-card.capture-mode .month-frame {
@@ -194,6 +198,25 @@ button {
   text-align: center;
   font-size: 2rem;
   padding: 4px 8px;
+}
+
+.brand-title-preview {
+  display: none;
+}
+
+.calendar-card.capture-mode .brand-title-preview {
+  display: block !important;
+  width: min(560px, calc(100% - 112px)) !important;
+  min-height: 72px !important;
+  color: #d94f75 !important;
+  font-weight: 900 !important;
+  font-size: 2.22rem !important;
+  line-height: 1.18 !important;
+  padding: 8px 10px !important;
+  text-align: center !important;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow-wrap: anywhere !important;
 }
 
 .brand-input:focus {
