@@ -63,7 +63,9 @@ function normalizeState(value) {
   return {
     version: 1,
     title: normalizeTitle(source.title),
+    titleUpdatedAt: normalizeTimestamp(source.titleUpdatedAt),
     entries: normalizeEntries(source.entries),
+    deletedDates: normalizeDeletedDates(source.deletedDates),
     updatedAt: source.updatedAt || null
   };
 }
@@ -83,6 +85,19 @@ function normalizeEntries(value) {
       .filter(([dateKey, entry]) => /^\d{4}-\d{2}-\d{2}$/.test(dateKey) && entry && typeof entry === 'object')
       .map(([dateKey, entry]) => [dateKey, normalizeEntry(entry)])
       .filter(([, entry]) => entry)
+  );
+}
+
+function normalizeDeletedDates(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([dateKey]) => /^\d{4}-\d{2}-\d{2}$/.test(dateKey))
+      .map(([dateKey, timestamp]) => [dateKey, normalizeTimestamp(timestamp)])
+      .filter(([, timestamp]) => timestamp > 0)
   );
 }
 
@@ -106,7 +121,8 @@ function normalizeEntry(entry) {
     contents: String(entry.contents || ''),
     publishedAt: String(entry.publishedAt || ''),
     discount: String(entry.discount || ''),
-    originalThumbnail: String(entry.originalThumbnail || '')
+    originalThumbnail: String(entry.originalThumbnail || ''),
+    updatedAt: normalizeTimestamp(entry.updatedAt)
   };
 
   Object.keys(safeEntry).forEach((key) => {
@@ -116,6 +132,11 @@ function normalizeEntry(entry) {
   });
 
   return safeEntry;
+}
+
+function normalizeTimestamp(value) {
+  const number = Number(value || 0);
+  return Number.isFinite(number) && number > 0 ? number : 0;
 }
 
 function json(statusCode, body) {
