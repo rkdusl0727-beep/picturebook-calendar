@@ -146,7 +146,6 @@ function render() {
       ${entry?.kind === 'substitute' || isNoBookInputDay ? '' : `
         <span class="day-title-row">
           <input class="day-title-input" type="text" inputmode="text" autocomplete="off" value="${escapeHtml(draftTitle)}" placeholder="그림책 제목" aria-label="${dateKey} 그림책 제목">
-          <button class="day-substitute-button" type="button" aria-label="${dateKey} 휴가 또는 행사 이미지 선택">휴가</button>
         </span>
       `}
     `;
@@ -170,8 +169,6 @@ function render() {
 
       if (query) {
         openBookModal(dateKey, query);
-      } else if (input) {
-        focusTitleInput(input);
       } else {
         openSubstituteModal(dateKey);
       }
@@ -188,13 +185,12 @@ function render() {
 
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
+
         const input = cell.querySelector('.day-title-input');
         const query = input?.value.trim() || '';
 
         if (query) {
           openBookModal(dateKey, query);
-        } else if (input) {
-          focusTitleInput(input);
         } else {
           openSubstituteModal(dateKey);
         }
@@ -264,6 +260,7 @@ function render() {
       }
 
       event.preventDefault();
+
       const dateKey = input.closest('.day').dataset.date;
       const query = input.value.trim();
 
@@ -275,24 +272,7 @@ function render() {
     });
   });
 
-  grid.querySelectorAll('.day-substitute-button').forEach((button) => {
-    button.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      openSubstituteModal(button.closest('.day').dataset.date);
-    });
-  });
-
   renderCoverResults();
-}
-
-function focusTitleInput(input) {
-  input.focus({ preventScroll: true });
-
-  if (typeof input.setSelectionRange === 'function') {
-    const length = input.value.length;
-    input.setSelectionRange(length, length);
-  }
 }
 
 function clearWeekendEntries() {
@@ -395,6 +375,7 @@ function closeBookModal() {
   bookModal.hidden = true;
   state.modalQuery = '';
   state.searchResults = [];
+
   renderCoverResults();
   updateClearDateButton();
 }
@@ -484,6 +465,7 @@ function clearSelectedDate() {
 
   delete state.entries[state.selectedDate];
   delete state.drafts[state.selectedDate];
+
   state.deletedDates[state.selectedDate] = Date.now();
 
   saveEntries();
@@ -747,6 +729,7 @@ async function syncFromRemote({ saveAfterMerge = false } = {}) {
     }
 
     const changed = mergeRemoteState(remoteState);
+
     persistLocalState();
 
     if (changed) {
@@ -826,6 +809,7 @@ function mergeRemoteState(remoteState) {
 
   state.entries = nextEntries;
   state.deletedDates = nextDeletedDates;
+
   persistLocalState();
 
   return previousSnapshot !== JSON.stringify({
