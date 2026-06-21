@@ -1,7 +1,10 @@
 const DEFAULT_TITLE = '그림책 달력';
 const LOCAL_TITLE_KEY = 'picture-book-calendar-title';
 const LOCAL_ENTRIES_KEY = 'picture-book-calendar';
+const LOCAL_DELETED_DATES_KEY = 'picture-book-calendar-deleted-dates';
+const LOCAL_TITLE_UPDATED_KEY = 'picture-book-calendar-title-updated-at';
 const SYNC_API_URL = '/api/calendar-state';
+const SYNC_INTERVAL_MS = 8000;
 
 const state = {
   cursor: new Date(),
@@ -15,6 +18,9 @@ const state = {
   isComposingTitle: false,
   syncReady: false,
   syncTimer: null,
+  syncInterval: null,
+  titleUpdatedAt: loadTitleUpdatedAt(),
+  deletedDates: loadDeletedDates(),
   entries: loadEntries()
 };
 
@@ -50,7 +56,9 @@ bookModal.addEventListener('click', (event) => {
 });
 calendarTitle.value = localStorage.getItem(LOCAL_TITLE_KEY) || calendarTitle.value;
 calendarTitle.addEventListener('input', () => {
+  state.titleUpdatedAt = Date.now();
   localStorage.setItem(LOCAL_TITLE_KEY, calendarTitle.value.trim() || DEFAULT_TITLE);
+  localStorage.setItem(LOCAL_TITLE_UPDATED_KEY, String(state.titleUpdatedAt));
   scheduleRemoteSave();
 });
 render();
@@ -200,6 +208,7 @@ function render() {
       if (!input.value.trim() && entry?.kind !== 'substitute') {
         delete state.entries[dateKey];
         delete state.drafts[dateKey];
+        state.deletedDates[dateKey] = Date.now();
         saveEntries();
         render();
       }
@@ -270,6 +279,7 @@ function clearWeekendEntries() {
 
     if (date.getDay() === 0 || date.getDay() === 6) {
       delete state.entries[dateKey];
+      state.deletedDates[dateKey] = Date.now();
       changed = true;
     }
   });
@@ -403,7 +413,9 @@ function selectCover(index) {
   }
 
   state.entries[state.selectedDate] = book;
+  state.entries[state.selectedDate].updatedAt = Date.now();
   state.entries[state.selectedDate].thumbnail = proxiedImageUrl(book.thumbnail);
+  delete state.deletedDates[state.selectedDate];
   delete state.drafts[state.selectedDate];
   saveEntries();
   render();
@@ -421,8 +433,10 @@ function selectSubstitute(index) {
   state.entries[state.selectedDate] = {
     kind: 'substitute',
     title: substitute.title,
-    thumbnail: substitute.thumbnail
+    thumbnail: substitute.thumbnail,
+    updatedAt: Date.now()
   };
+  delete state.deletedDates[state.selectedDate];
   delete state.drafts[state.selectedDate];
   saveEntries();
   render();
@@ -437,6 +451,7 @@ function clearSelectedDate() {
 
   delete state.entries[state.selectedDate];
   delete state.drafts[state.selectedDate];
+  state.deletedDates[state.selectedDate] = Date.now();
   saveEntries();
   closeBookModal();
   render();
@@ -651,18 +666,38 @@ async function waitForImages(root) {
 
 function loadEntries() {
   try {
-    return JSON.parse(localStorage.getItem(LOCAL_ENTRIES_KEY) || '{}');
+    return normalizeEntries(JSON.parse(localStorage.getItem(LOCAL_ENTRIES_KEY) || '{}'));
   } catch {
     return {};
   }
 }
 
+function loadDeletedDates() {
+  try {
+    return normalizeDeletedDates(JSON.parse(localStorage.getItem(LOCAL_DELETED_DATES_KEY) || '{}'));
+  } catch {
+    return {};
+  }
+}
+
+function loadTitleUpdatedAt() {
+  const value = Number(localStorage.getItem(LOCAL_TITLE_UPDATED_KEY) || 0);
+  return Number.isFinite(value) ? value : 0;
+}
+
 function saveEntries() {
   localStorage.setItem(LOCAL_ENTRIES_KEY, JSON.stringify(state.entries));
+  localStorage.setItem(LOCAL_DELETED_DATES_KEY, JSON.stringify(state.deletedDates));
   scheduleRemoteSave();
 }
 
 async function loadRemoteState() {
+  state.syncReady = true;
+  await syncFromRemote({ saveAfterMerge: hasLocalState() });
+  startSyncPolling();
+}
+
+async function syncFromRemote({ saveAfterMerge = false } = {}) {
   try {
     const response = await fetch(SYNC_API_URL, {
       cache: 'no-store'
@@ -673,40 +708,122 @@ async function loadRemoteState() {
       throw new Error(remoteState.error || '달력 데이터를 불러오지 못했습니다.');
     }
 
-    const hasRemoteEntries = remoteState.entries && Object.keys(remoteState.entries).length > 0;
-    const hasRemoteTitle = String(remoteState.title || '').trim()
-      && String(remoteState.title || '').trim() !== DEFAULT_TITLE;
+    const changed = mergeRemoteState(remoteState);
+    persistLocalState();
 
-    if (hasRemoteEntries || hasRemoteTitle) {
-      applyRemoteState(remoteState);
+    if (changed) {
+      render();
     }
 
-    state.syncReady = true;
-
-    if (!hasRemoteEntries && !hasRemoteTitle && hasLocalState()) {
+    if (saveAfterMerge || changed) {
       scheduleRemoteSave();
     }
   } catch (error) {
     console.warn(error);
-    state.syncReady = true;
   }
 }
 
-function applyRemoteState(remoteState) {
-  state.entries = remoteState.entries && typeof remoteState.entries === 'object'
-    ? remoteState.entries
-    : {};
+function mergeRemoteState(remoteState) {
+  const previousSnapshot = JSON.stringify({
+    title: calendarTitle.value.trim() || DEFAULT_TITLE,
+    titleUpdatedAt: state.titleUpdatedAt,
+    entries: state.entries,
+    deletedDates: state.deletedDates
+  });
+  const remoteEntries = normalizeEntries(remoteState.entries);
+  const remoteDeletedDates = normalizeDeletedDates(remoteState.deletedDates);
+  const remoteTitle = String(remoteState.title || '').trim() || DEFAULT_TITLE;
+  const remoteTitleUpdatedAt = normalizeTimestamp(remoteState.titleUpdatedAt);
+  const localTitle = calendarTitle.value.trim() || DEFAULT_TITLE;
 
-  calendarTitle.value = String(remoteState.title || '').trim() || DEFAULT_TITLE;
-  localStorage.setItem(LOCAL_TITLE_KEY, calendarTitle.value);
+  if (
+    remoteTitleUpdatedAt > state.titleUpdatedAt
+    || (!state.titleUpdatedAt && remoteTitle !== DEFAULT_TITLE && localTitle === DEFAULT_TITLE)
+  ) {
+    calendarTitle.value = remoteTitle;
+    state.titleUpdatedAt = remoteTitleUpdatedAt || Date.now();
+  }
+
+  const mergedDates = new Set([
+    ...Object.keys(state.entries),
+    ...Object.keys(remoteEntries),
+    ...Object.keys(state.deletedDates),
+    ...Object.keys(remoteDeletedDates)
+  ]);
+
+  const nextEntries = {};
+  const nextDeletedDates = {};
+
+  mergedDates.forEach((dateKey) => {
+    const localEntry = state.entries[dateKey];
+    const remoteEntry = remoteEntries[dateKey];
+    const localEntryTime = getEntryTime(localEntry);
+    const remoteEntryTime = getEntryTime(remoteEntry);
+    const localDeletedTime = normalizeTimestamp(state.deletedDates[dateKey]);
+    const remoteDeletedTime = normalizeTimestamp(remoteDeletedDates[dateKey]);
+    const latestTime = Math.max(localEntryTime, remoteEntryTime, localDeletedTime, remoteDeletedTime);
+
+    if (latestTime === 0) {
+      if (localEntry || remoteEntry) {
+        nextEntries[dateKey] = localEntry || remoteEntry;
+      }
+      return;
+    }
+
+    if (latestTime === localDeletedTime || latestTime === remoteDeletedTime) {
+      nextDeletedDates[dateKey] = latestTime;
+      return;
+    }
+
+    const entry = remoteEntryTime > localEntryTime ? remoteEntry : localEntry;
+
+    if (entry) {
+      nextEntries[dateKey] = {
+        ...entry,
+        updatedAt: getEntryTime(entry) || latestTime
+      };
+    }
+  });
+
+  state.entries = nextEntries;
+  state.deletedDates = nextDeletedDates;
+  persistLocalState();
+
+  return previousSnapshot !== JSON.stringify({
+    title: calendarTitle.value.trim() || DEFAULT_TITLE,
+    titleUpdatedAt: state.titleUpdatedAt,
+    entries: state.entries,
+    deletedDates: state.deletedDates
+  });
+}
+
+function persistLocalState() {
+  localStorage.setItem(LOCAL_TITLE_KEY, calendarTitle.value.trim() || DEFAULT_TITLE);
+  localStorage.setItem(LOCAL_TITLE_UPDATED_KEY, String(state.titleUpdatedAt || 0));
   localStorage.setItem(LOCAL_ENTRIES_KEY, JSON.stringify(state.entries));
-  render();
+  localStorage.setItem(LOCAL_DELETED_DATES_KEY, JSON.stringify(state.deletedDates));
 }
 
 function hasLocalState() {
   const title = calendarTitle.value.trim();
 
-  return Object.keys(state.entries).length > 0 || (title && title !== DEFAULT_TITLE);
+  return Object.keys(state.entries).length > 0
+    || Object.keys(state.deletedDates).length > 0
+    || (title && title !== DEFAULT_TITLE);
+}
+
+function startSyncPolling() {
+  if (state.syncInterval) {
+    return;
+  }
+
+  state.syncInterval = setInterval(() => {
+    if (document.hidden || state.isEditingTitle || state.isComposingTitle || !state.syncReady) {
+      return;
+    }
+
+    syncFromRemote();
+  }, SYNC_INTERVAL_MS);
 }
 
 function scheduleRemoteSave() {
@@ -727,7 +844,9 @@ async function saveRemoteState() {
       },
       body: JSON.stringify({
         title: calendarTitle.value.trim() || DEFAULT_TITLE,
-        entries: state.entries
+        titleUpdatedAt: state.titleUpdatedAt || Date.now(),
+        entries: state.entries,
+        deletedDates: state.deletedDates
       })
     });
 
@@ -738,6 +857,46 @@ async function saveRemoteState() {
   } catch (error) {
     console.warn(error);
   }
+}
+
+function normalizeEntries(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([dateKey, entry]) => /^\d{4}-\d{2}-\d{2}$/.test(dateKey) && entry && typeof entry === 'object')
+      .map(([dateKey, entry]) => [
+        dateKey,
+        {
+          ...entry,
+          updatedAt: getEntryTime(entry)
+        }
+      ])
+  );
+}
+
+function normalizeDeletedDates(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([dateKey]) => /^\d{4}-\d{2}-\d{2}$/.test(dateKey))
+      .map(([dateKey, timestamp]) => [dateKey, normalizeTimestamp(timestamp)])
+      .filter(([, timestamp]) => timestamp > 0)
+  );
+}
+
+function getEntryTime(entry) {
+  return normalizeTimestamp(entry?.updatedAt);
+}
+
+function normalizeTimestamp(value) {
+  const number = Number(value || 0);
+  return Number.isFinite(number) && number > 0 ? number : 0;
 }
 
 function setStatus(message) {
