@@ -1,3 +1,6 @@
+아래는 **`site/app.js` 전체 교체용**입니다. GitHub에서 `site/app.js` 열고 전체 삭제 후 그대로 붙여넣으면 돼요.
+
+```js
 const DEFAULT_TITLE = '그림책 달력';
 const LOCAL_TITLE_KEY = 'picture-book-calendar-title';
 const LOCAL_ENTRIES_KEY = 'picture-book-calendar';
@@ -54,6 +57,7 @@ bookModal.addEventListener('click', (event) => {
     closeBookModal();
   }
 });
+
 calendarTitle.value = localStorage.getItem(LOCAL_TITLE_KEY) || calendarTitle.value;
 calendarTitle.addEventListener('input', () => {
   state.titleUpdatedAt = Date.now();
@@ -61,6 +65,7 @@ calendarTitle.addEventListener('input', () => {
   localStorage.setItem(LOCAL_TITLE_UPDATED_KEY, String(state.titleUpdatedAt));
   scheduleRemoteSave();
 });
+
 render();
 loadRemoteState();
 
@@ -72,14 +77,17 @@ function changeMonth(offset) {
 
 function render() {
   clearWeekendEntries();
+
   const year = state.cursor.getFullYear();
   const month = state.cursor.getMonth();
   const first = new Date(year, month, 1);
   const start = new Date(year, month, 1 - first.getDay());
   const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 41);
+
   ensureHolidays(year);
   ensureHolidays(start.getFullYear());
   ensureHolidays(end.getFullYear());
+
   monthLabel.textContent = `${year}년 ${month + 1}월`;
   updateBookCount(year, month);
   grid.innerHTML = '';
@@ -93,6 +101,7 @@ function render() {
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
     const isNoBookInputDay = isWeekend || Boolean(holiday);
     const cell = document.createElement('div');
+
     cell.tabIndex = 0;
     cell.role = 'button';
     cell.className = 'day';
@@ -140,6 +149,7 @@ function render() {
       ${entry?.kind === 'substitute' || isNoBookInputDay ? '' : `
         <span class="day-title-row">
           <input class="day-title-input" type="text" inputmode="text" autocomplete="off" value="${escapeHtml(draftTitle)}" placeholder="그림책 제목" aria-label="${dateKey} 그림책 제목">
+          <button class="day-substitute-button" type="button" aria-label="${dateKey} 휴가 또는 행사 이미지 선택">휴가</button>
         </span>
       `}
     `;
@@ -157,6 +167,7 @@ function render() {
       if (event.target.closest('.day-title-row')) {
         return;
       }
+
       const input = cell.querySelector('.day-title-input');
       const query = input?.value.trim() || '';
 
@@ -168,6 +179,7 @@ function render() {
         openSubstituteModal(dateKey);
       }
     });
+
     cell.addEventListener('keydown', (event) => {
       if (isWeekend) {
         return;
@@ -191,15 +203,18 @@ function render() {
         }
       }
     });
+
     grid.append(cell);
   }
 
   grid.querySelectorAll('.day-title-input').forEach((input) => {
     input.addEventListener('click', (event) => event.stopPropagation());
+
     input.addEventListener('focus', () => {
       state.isEditingTitle = true;
       state.selectedDate = input.closest('.day').dataset.date;
     });
+
     input.addEventListener('blur', () => {
       state.isEditingTitle = false;
       const dateKey = input.closest('.day').dataset.date;
@@ -213,9 +228,11 @@ function render() {
         render();
       }
     });
+
     input.addEventListener('compositionstart', () => {
       state.isComposingTitle = true;
     });
+
     input.addEventListener('compositionend', () => {
       state.isComposingTitle = false;
       const dateKey = input.closest('.day').dataset.date;
@@ -225,6 +242,7 @@ function render() {
         state.drafts[dateKey] = draftTitle;
       }
     });
+
     input.addEventListener('input', () => {
       const dateKey = input.closest('.day').dataset.date;
       const draftTitle = input.value;
@@ -236,6 +254,7 @@ function render() {
 
       delete state.drafts[dateKey];
     });
+
     input.addEventListener('keydown', (event) => {
       event.stopPropagation();
 
@@ -256,6 +275,14 @@ function render() {
       } else {
         openSubstituteModal(dateKey);
       }
+    });
+  });
+
+  grid.querySelectorAll('.day-substitute-button').forEach((button) => {
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openSubstituteModal(button.closest('.day').dataset.date);
     });
   });
 
@@ -336,10 +363,13 @@ function openBookModal(dateKey, query = '') {
   state.selectedDate = dateKey;
   state.modalQuery = query.trim();
   state.searchResults = [];
+
   const selectedBook = state.entries[dateKey];
   const searchQuery = query || selectedBook?.title || '';
+
   modalTitle.textContent = searchQuery ? `"${searchQuery}" 표지를 골라주세요` : '제목을 입력해 주세요';
   bookModal.hidden = false;
+
   render();
   renderCoverResults();
   updateClearDateButton();
@@ -354,8 +384,10 @@ function openSubstituteModal(dateKey) {
   state.selectedDate = dateKey;
   state.modalQuery = '';
   state.searchResults = [];
+
   modalTitle.textContent = `${dateKey}에 넣을 이미지를 골라주세요`;
   bookModal.hidden = false;
+
   render();
   renderCoverResults();
   updateClearDateButton();
@@ -415,8 +447,10 @@ function selectCover(index) {
   state.entries[state.selectedDate] = book;
   state.entries[state.selectedDate].updatedAt = Date.now();
   state.entries[state.selectedDate].thumbnail = proxiedImageUrl(book.thumbnail);
+
   delete state.deletedDates[state.selectedDate];
   delete state.drafts[state.selectedDate];
+
   saveEntries();
   render();
   setStatus(`${state.selectedDate}에 표지를 넣었습니다.`);
@@ -436,8 +470,10 @@ function selectSubstitute(index) {
     thumbnail: substitute.thumbnail,
     updatedAt: Date.now()
   };
+
   delete state.deletedDates[state.selectedDate];
   delete state.drafts[state.selectedDate];
+
   saveEntries();
   render();
   setStatus(`${state.selectedDate}에 ${substitute.title} 이미지를 넣었습니다.`);
@@ -452,6 +488,7 @@ function clearSelectedDate() {
   delete state.entries[state.selectedDate];
   delete state.drafts[state.selectedDate];
   state.deletedDates[state.selectedDate] = Date.now();
+
   saveEntries();
   closeBookModal();
   render();
@@ -476,6 +513,7 @@ function renderCoverResults() {
     coverResults.querySelectorAll('[data-substitute-index]').forEach((button) => {
       button.addEventListener('click', () => selectSubstitute(Number(button.dataset.substituteIndex)));
     });
+
     return;
   }
 
@@ -500,6 +538,7 @@ function renderCoverResults() {
 async function saveCalendarImage() {
   const calendar = document.querySelector('#calendar');
   const titlePreview = createTitlePreview();
+
   calendar.classList.add('capture-mode');
   calendarTitle.hidden = true;
   calendarTitle.insertAdjacentElement('afterend', titlePreview);
@@ -597,6 +636,7 @@ async function saveWithFilePicker(blob, suggestedName) {
       }
     ]
   });
+
   const writable = await handle.createWritable();
   await writable.write(blob);
   await writable.close();
@@ -702,6 +742,7 @@ async function syncFromRemote({ saveAfterMerge = false } = {}) {
     const response = await fetch(SYNC_API_URL, {
       cache: 'no-store'
     });
+
     const remoteState = await response.json().catch(() => ({}));
 
     if (!response.ok) {
@@ -730,6 +771,7 @@ function mergeRemoteState(remoteState) {
     entries: state.entries,
     deletedDates: state.deletedDates
   });
+
   const remoteEntries = normalizeEntries(remoteState.entries);
   const remoteDeletedDates = normalizeDeletedDates(remoteState.deletedDates);
   const remoteTitle = String(remoteState.title || '').trim() || DEFAULT_TITLE;
@@ -941,3 +983,4 @@ function makeSubstituteImage({ title, accent, bg, icon }) {
 
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
+```
