@@ -17,3 +17,8 @@
   from = "/api/image-proxy"
   to = "/.netlify/functions/image-proxy"
   status = 200
+
+[[redirects]]
+  from = "/api/calendar-state"
+  to = "/.netlify/functions/calendar-state"
+  status = 200
