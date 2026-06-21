@@ -4,6 +4,7 @@ import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { handler as searchBooks } from '../netlify/functions/search-books.mjs';
 import { handler as holidays } from '../netlify/functions/holidays.mjs';
+import { handler as calendarState } from '../netlify/functions/calendar-state.mjs';
 
 const root = fileURLToPath(new URL('../site', import.meta.url));
 const projectRoot = fileURLToPath(new URL('..', import.meta.url));
@@ -48,6 +49,22 @@ const server = createServer(async (request, response) => {
 
       response.writeHead(result.statusCode, {
         'content-type': result.headers?.['content-type'] || 'application/json; charset=utf-8'
+      });
+      response.end(result.body);
+      return;
+    }
+
+    if (url.pathname === '/api/calendar-state') {
+      const body = await readRequestBody(request);
+      const result = await calendarState({
+        httpMethod: request.method,
+        queryStringParameters: Object.fromEntries(url.searchParams.entries()),
+        body
+      });
+
+      response.writeHead(result.statusCode, {
+        'content-type': result.headers?.['content-type'] || 'application/json; charset=utf-8',
+        'cache-control': result.headers?.['cache-control'] || 'no-store'
       });
       response.end(result.body);
       return;
@@ -99,6 +116,19 @@ async function loadEnv() {
       throw error;
     }
   }
+}
+
+function readRequestBody(request) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+
+    request.setEncoding('utf8');
+    request.on('data', (chunk) => {
+      body += chunk;
+    });
+    request.on('end', () => resolve(body));
+    request.on('error', reject);
+  });
 }
 
 async function findEnvFile() {
