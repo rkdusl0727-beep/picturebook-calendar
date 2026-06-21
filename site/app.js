@@ -1,3 +1,8 @@
+const DEFAULT_TITLE = '그림책 달력';
+const LOCAL_TITLE_KEY = 'picture-book-calendar-title';
+const LOCAL_ENTRIES_KEY = 'picture-book-calendar';
+const SYNC_API_URL = '/api/calendar-state';
+
 const state = {
   cursor: new Date(),
   selectedDate: toDateKey(new Date()),
@@ -8,6 +13,8 @@ const state = {
   drafts: {},
   isEditingTitle: false,
   isComposingTitle: false,
+  syncReady: false,
+  syncTimer: null,
   entries: loadEntries()
 };
 
@@ -41,11 +48,13 @@ bookModal.addEventListener('click', (event) => {
     closeBookModal();
   }
 });
-calendarTitle.value = localStorage.getItem('picture-book-calendar-title') || calendarTitle.value;
+calendarTitle.value = localStorage.getItem(LOCAL_TITLE_KEY) || calendarTitle.value;
 calendarTitle.addEventListener('input', () => {
-  localStorage.setItem('picture-book-calendar-title', calendarTitle.value.trim() || '그림책 달력');
+  localStorage.setItem(LOCAL_TITLE_KEY, calendarTitle.value.trim() || DEFAULT_TITLE);
+  scheduleRemoteSave();
 });
 render();
+loadRemoteState();
 
 function changeMonth(offset) {
   state.cursor = new Date(state.cursor.getFullYear(), state.cursor.getMonth() + offset, 1);
@@ -642,14 +651,93 @@ async function waitForImages(root) {
 
 function loadEntries() {
   try {
-    return JSON.parse(localStorage.getItem('picture-book-calendar') || '{}');
+    return JSON.parse(localStorage.getItem(LOCAL_ENTRIES_KEY) || '{}');
   } catch {
     return {};
   }
 }
 
 function saveEntries() {
-  localStorage.setItem('picture-book-calendar', JSON.stringify(state.entries));
+  localStorage.setItem(LOCAL_ENTRIES_KEY, JSON.stringify(state.entries));
+  scheduleRemoteSave();
+}
+
+async function loadRemoteState() {
+  try {
+    const response = await fetch(SYNC_API_URL, {
+      cache: 'no-store'
+    });
+    const remoteState = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(remoteState.error || '달력 데이터를 불러오지 못했습니다.');
+    }
+
+    const hasRemoteEntries = remoteState.entries && Object.keys(remoteState.entries).length > 0;
+    const hasRemoteTitle = String(remoteState.title || '').trim()
+      && String(remoteState.title || '').trim() !== DEFAULT_TITLE;
+
+    if (hasRemoteEntries || hasRemoteTitle) {
+      applyRemoteState(remoteState);
+    }
+
+    state.syncReady = true;
+
+    if (!hasRemoteEntries && !hasRemoteTitle && hasLocalState()) {
+      scheduleRemoteSave();
+    }
+  } catch (error) {
+    console.warn(error);
+    state.syncReady = true;
+  }
+}
+
+function applyRemoteState(remoteState) {
+  state.entries = remoteState.entries && typeof remoteState.entries === 'object'
+    ? remoteState.entries
+    : {};
+
+  calendarTitle.value = String(remoteState.title || '').trim() || DEFAULT_TITLE;
+  localStorage.setItem(LOCAL_TITLE_KEY, calendarTitle.value);
+  localStorage.setItem(LOCAL_ENTRIES_KEY, JSON.stringify(state.entries));
+  render();
+}
+
+function hasLocalState() {
+  const title = calendarTitle.value.trim();
+
+  return Object.keys(state.entries).length > 0 || (title && title !== DEFAULT_TITLE);
+}
+
+function scheduleRemoteSave() {
+  if (!state.syncReady) {
+    return;
+  }
+
+  clearTimeout(state.syncTimer);
+  state.syncTimer = setTimeout(saveRemoteState, 500);
+}
+
+async function saveRemoteState() {
+  try {
+    const response = await fetch(SYNC_API_URL, {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        title: calendarTitle.value.trim() || DEFAULT_TITLE,
+        entries: state.entries
+      })
+    });
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.error || '달력 데이터를 저장하지 못했습니다.');
+    }
+  } catch (error) {
+    console.warn(error);
+  }
 }
 
 function setStatus(message) {
