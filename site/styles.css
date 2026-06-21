@@ -299,6 +299,7 @@ h1 {
   gap: 5px;
   min-height: 128px;
   padding: 14px 12px;
+  position: relative;
 }
 
 .day.has-title-input {
@@ -394,7 +395,8 @@ h1 {
 .day-title-row {
   display: grid;
   gap: 4px;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   margin-top: auto;
 }
 
@@ -417,6 +419,29 @@ h1 {
 
 .day-title-input:focus {
   outline: 2px solid #ff9fb9;
+}
+
+.day-substitute-button {
+  min-height: 28px;
+  border: 1px solid rgba(255, 159, 185, .5);
+  border-radius: 999px;
+  background: rgba(255, 232, 239, .9);
+  color: #c7636d;
+  cursor: pointer;
+  font-size: .68rem;
+  font-weight: 900;
+  line-height: 1;
+  padding: 3px 8px;
+  white-space: nowrap;
+}
+
+.day-substitute-button:focus-visible {
+  outline: 2px solid #ff9fb9;
+  outline-offset: 2px;
+}
+
+.calendar-card.capture-mode .day-substitute-button {
+  display: none;
 }
 
 .toolbar {
@@ -688,6 +713,20 @@ input {
     padding: 5px 6px;
   }
 
+  .day-title-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .day-substitute-button {
+    position: absolute;
+    right: 5px;
+    bottom: 5px;
+    min-height: 22px;
+    min-width: 30px;
+    font-size: .56rem;
+    padding: 2px 5px;
+  }
+
   .book-count {
     flex-wrap: wrap;
     gap: 4px 6px;
@@ -772,5 +811,14 @@ input {
     min-height: 32px;
     font-size: .68rem;
     padding: 4px 5px;
+  }
+
+  .day-substitute-button {
+    right: 4px;
+    bottom: 4px;
+    min-height: 20px;
+    min-width: 26px;
+    font-size: .52rem;
+    padding: 2px 4px;
   }
 }
