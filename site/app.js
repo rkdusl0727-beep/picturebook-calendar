@@ -1,6 +1,3 @@
-아래는 **`site/app.js` 전체 교체용**입니다. GitHub에서 `site/app.js` 열고 전체 삭제 후 그대로 붙여넣으면 돼요.
-
-```js
 const DEFAULT_TITLE = '그림책 달력';
 const LOCAL_TITLE_KEY = 'picture-book-calendar-title';
 const LOCAL_ENTRIES_KEY = 'picture-book-calendar';
@@ -983,4 +980,3 @@ function makeSubstituteImage({ title, accent, bg, icon }) {
 
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
-```
