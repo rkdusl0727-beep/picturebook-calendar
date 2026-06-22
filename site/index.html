@@ -4,59 +4,199 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>그림책 달력</title>
+
     <link rel="stylesheet" href="/styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"
+      defer
+    ></script>
     <script src="/app.js" defer></script>
   </head>
+
   <body>
     <main class="app">
       <section class="workbench" aria-label="그림책 달력 작업 영역">
         <div class="calendar-card" id="calendar">
           <div class="brand-row">
-            <svg class="brand-book" viewBox="0 0 64 54" aria-hidden="true">
-              <path d="M8 9c0-2.8 2.2-5 5-5h17c4.2 0 7.8 2.2 10 5.5C42.2 6.2 45.8 4 50 4h6v40h-7c-3.7 0-6.9 1.8-9 4.6C37.9 45.8 34.7 44 31 44H8V9Z" fill="#f9fbff"/>
-              <path d="M8 9c0-2.8 2.2-5 5-5h17c4.2 0 7.8 2.2 10 5.5V49c-2.1-3-5.4-5-9.2-5H8V9Z" fill="#8fd3c1"/>
-              <path d="M40 9.5C42.2 6.2 45.8 4 50 4h6v40h-7c-3.7 0-6.9 1.8-9 4.6V9.5Z" fill="#ffb6c8"/>
-              <path d="M16 14h16M16 21h14M46 14h6M46 21h6M46 28h6" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
-              <path d="M8 9c0-2.8 2.2-5 5-5h17c4.2 0 7.8 2.2 10 5.5C42.2 6.2 45.8 4 50 4h6v40h-7c-3.7 0-6.9 1.8-9 4.6C37.9 45.8 34.7 44 31 44H8V9Z" fill="none" stroke="#4d7f73" stroke-width="3" stroke-linejoin="round"/>
+            <svg
+              class="brand-book"
+              viewBox="0 0 64 54"
+              aria-hidden="true"
+            >
+              <path
+                d="M8 9c0-2.8 2.2-5 5-5h17c4.2 0 7.8 2.2 10 5.5C42.2 6.2 45.8 4 50 4h6v40h-7c-3.7 0-6.9 1.8-9 4.6C37.9 45.8 34.7 44 31 44H8V9Z"
+                fill="#f9fbff"
+              />
+              <path
+                d="M8 9c0-2.8 2.2-5 5-5h17c4.2 0 7.8 2.2 10 5.5V49c-2.1-3-5.4-5-9.2-5H8V9Z"
+                fill="#8fd3c1"
+              />
+              <path
+                d="M40 9.5C42.2 6.2 45.8 4 50 4h6v40h-7c-3.7 0-6.9 1.8-9 4.6V9.5Z"
+                fill="#ffb6c8"
+              />
+              <path
+                d="M16 14h16M16 21h14M46 14h6M46 21h6M46 28h6"
+                stroke="#ffffff"
+                stroke-width="3"
+                stroke-linecap="round"
+              />
+              <path
+                d="M8 9c0-2.8 2.2-5 5-5h17c4.2 0 7.8 2.2 10 5.5C42.2 6.2 45.8 4 50 4h6v40h-7c-3.7 0-6.9 1.8-9 4.6C37.9 45.8 34.7 44 31 44H8V9Z"
+                fill="none"
+                stroke="#4d7f73"
+                stroke-width="3"
+                stroke-linejoin="round"
+              />
             </svg>
-            <input class="brand-input" id="calendarTitle" type="text" value="어진반 그림책 달력" aria-label="달력 제목">
-            <svg class="brand-book brand-book-right" viewBox="0 0 64 54" aria-hidden="true">
-              <path d="M8 9c0-2.8 2.2-5 5-5h17c4.2 0 7.8 2.2 10 5.5C42.2 6.2 45.8 4 50 4h6v40h-7c-3.7 0-6.9 1.8-9 4.6C37.9 45.8 34.7 44 31 44H8V9Z" fill="#f9fbff"/>
-              <path d="M8 9c0-2.8 2.2-5 5-5h17c4.2 0 7.8 2.2 10 5.5V49c-2.1-3-5.4-5-9.2-5H8V9Z" fill="#8fd3c1"/>
-              <path d="M40 9.5C42.2 6.2 45.8 4 50 4h6v40h-7c-3.7 0-6.9 1.8-9 4.6V9.5Z" fill="#ffb6c8"/>
-              <path d="M16 14h16M16 21h14M46 14h6M46 21h6M46 28h6" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
-              <path d="M8 9c0-2.8 2.2-5 5-5h17c4.2 0 7.8 2.2 10 5.5C42.2 6.2 45.8 4 50 4h6v40h-7c-3.7 0-6.9 1.8-9 4.6C37.9 45.8 34.7 44 31 44H8V9Z" fill="none" stroke="#4d7f73" stroke-width="3" stroke-linejoin="round"/>
+
+            <input
+              class="brand-input"
+              id="calendarTitle"
+              type="text"
+              value="어진반 그림책 달력"
+              aria-label="달력 제목"
+            >
+
+            <svg
+              class="brand-book brand-book-right"
+              viewBox="0 0 64 54"
+              aria-hidden="true"
+            >
+              <path
+                d="M8 9c0-2.8 2.2-5 5-5h17c4.2 0 7.8 2.2 10 5.5C42.2 6.2 45.8 4 50 4h6v40h-7c-3.7 0-6.9 1.8-9 4.6C37.9 45.8 34.7 44 31 44H8V9Z"
+                fill="#f9fbff"
+              />
+              <path
+                d="M8 9c0-2.8 2.2-5 5-5h17c4.2 0 7.8 2.2 10 5.5V49c-2.1-3-5.4-5-9.2-5H8V9Z"
+                fill="#8fd3c1"
+              />
+              <path
+                d="M40 9.5C42.2 6.2 45.8 4 50 4h6v40h-7c-3.7 0-6.9 1.8-9 4.6V9.5Z"
+                fill="#ffb6c8"
+              />
+              <path
+                d="M16 14h16M16 21h14M46 14h6M46 21h6M46 28h6"
+                stroke="#ffffff"
+                stroke-width="3"
+                stroke-linecap="round"
+              />
+              <path
+                d="M8 9c0-2.8 2.2-5 5-5h17c4.2 0 7.8 2.2 10 5.5C42.2 6.2 45.8 4 50 4h6v40h-7c-3.7 0-6.9 1.8-9 4.6C37.9 45.8 34.7 44 31 44H8V9Z"
+                fill="none"
+                stroke="#4d7f73"
+                stroke-width="3"
+                stroke-linejoin="round"
+              />
             </svg>
           </div>
+
           <div class="month-frame">
-            <button class="arrow" type="button" id="prevMonth" aria-label="이전 달">◀</button>
+            <button
+              class="arrow"
+              type="button"
+              id="prevMonth"
+              aria-label="이전 달"
+            >
+              ◀
+            </button>
+
             <h1 id="monthLabel"></h1>
-            <button class="arrow" type="button" id="nextMonth" aria-label="다음 달">▶</button>
+
+            <button
+              class="arrow"
+              type="button"
+              id="nextMonth"
+              aria-label="다음 달"
+            >
+              ▶
+            </button>
           </div>
+
           <div class="weekdays">
-            <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+            <span>일</span>
+            <span>월</span>
+            <span>화</span>
+            <span>수</span>
+            <span>목</span>
+            <span>금</span>
+            <span>토</span>
           </div>
+
           <div class="grid" id="grid"></div>
+
           <div class="book-count" id="bookCount"></div>
         </div>
 
         <div class="toolbar" aria-label="달력 도구">
-          <button class="save-button" type="button" id="saveButton">이미지 저장</button>
+          <button
+            class="save-button"
+            type="button"
+            id="saveButton"
+          >
+            이미지 저장
+          </button>
+
+          <button
+            class="secondary-button"
+            type="button"
+            id="copyCalendarLink"
+          >
+            달력 주소 복사
+          </button>
+
+          <button
+            class="secondary-button"
+            type="button"
+            id="newCalendarButton"
+          >
+            새 달력 만들기
+          </button>
         </div>
       </section>
     </main>
 
-    <div class="modal-backdrop" id="bookModal" hidden>
-      <section class="book-modal" aria-label="그림책 표지 선택">
+    <div
+      class="modal-backdrop"
+      id="bookModal"
+      hidden
+    >
+      <section
+        class="book-modal"
+        aria-label="그림책 표지 선택"
+      >
         <div class="modal-head">
           <strong id="modalTitle">표지를 골라주세요</strong>
-          <button class="icon-button" type="button" id="closeModal" aria-label="닫기">×</button>
+
+          <button
+            class="icon-button"
+            type="button"
+            id="closeModal"
+            aria-label="닫기"
+          >
+            ×
+          </button>
         </div>
 
-        <div class="status" id="status"></div>
-        <div class="cover-results" id="coverResults"></div>
-        <button class="clear-date-button" type="button" id="clearDateButton" hidden>이 날짜 비우기</button>
+        <div
+          class="status"
+          id="status"
+        ></div>
+
+        <div
+          class="cover-results"
+          id="coverResults"
+        ></div>
+
+        <button
+          class="clear-date-button"
+          type="button"
+          id="clearDateButton"
+          hidden
+        >
+          이 날짜 비우기
+        </button>
       </section>
     </div>
   </body>
