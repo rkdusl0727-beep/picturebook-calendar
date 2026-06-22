@@ -63,7 +63,12 @@ button {
   padding: 28px 28px 34px;
   border: 4px solid var(--pastel-pink-strong);
   border-radius: 28px;
-  background: linear-gradient(180deg, rgba(255, 247, 251, .98), rgba(255, 238, 245, .98));
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 247, 251, .98),
+      rgba(255, 238, 245, .98)
+    );
   box-shadow: 0 22px 42px rgba(224, 102, 140, .18);
 }
 
@@ -399,7 +404,7 @@ h1 {
 .day-title-row {
   display: grid;
   gap: 4px;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
   margin-top: auto;
 }
@@ -451,16 +456,19 @@ input {
   box-shadow: 0 14px 24px rgba(224, 102, 140, .24);
 }
 
-.section-title {
-  color: rgba(53, 43, 53, .62);
-  display: block;
-  font-size: .82rem;
-  margin-bottom: 4px;
+.secondary-button {
+  min-height: 42px;
+  border: 2px solid rgba(255, 159, 185, .42);
+  border-radius: 999px;
+  padding: 0 20px;
+  background: rgba(255, 255, 255, .92);
+  color: #c7636d;
+  box-shadow: 0 10px 18px rgba(116, 91, 111, .08);
 }
 
-.settings-form {
-  display: grid;
-  gap: 10px;
+.secondary-button:focus-visible {
+  outline: 3px solid rgba(255, 159, 185, .45);
+  outline-offset: 2px;
 }
 
 .modal-backdrop {
@@ -694,10 +702,6 @@ input {
     padding: 5px 6px;
   }
 
-  .day-title-row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .book-count {
     flex-wrap: wrap;
     gap: 4px 6px;
@@ -718,6 +722,11 @@ input {
   .save-button {
     width: min(100%, 260px);
     min-height: 46px;
+  }
+
+  .secondary-button {
+    min-height: 44px;
+    padding: 0 16px;
   }
 
   .book-modal {
