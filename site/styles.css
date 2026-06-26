@@ -130,14 +130,14 @@ button {
 
 .calendar-card.capture-mode .day {
   min-height: 126px !important;
-  padding: 12px 10px !important;
+  padding: 10px 8px !important;
   border-radius: 16px !important;
-  gap: 5px !important;
+  gap: 3px !important;
 }
 
 .calendar-card.capture-mode .day.has-book {
-  min-height: 152px !important;
-  padding: 8px 8px !important;
+  min-height: 160px !important;
+  padding: 7px 6px !important;
 }
 
 .calendar-card.capture-mode .cover {
@@ -146,7 +146,7 @@ button {
 }
 
 .calendar-card.capture-mode .day.has-book .cover {
-  width: 118px !important;
+  width: min(100%, 132px) !important;
 }
 
 .calendar-card.capture-mode .date {
@@ -168,9 +168,9 @@ button {
 }
 
 .calendar-card.capture-mode .day.has-book .day-title-input {
-  min-height: 30px !important;
-  font-size: .84rem !important;
-  padding: 3px 7px !important;
+  min-height: 28px !important;
+  font-size: .82rem !important;
+  padding: 2px 6px !important;
 }
 
 .calendar-card.capture-mode .book-count {
@@ -326,8 +326,8 @@ h1 {
 }
 
 .day.has-book {
-  min-height: 136px;
-  padding: 8px 8px;
+  min-height: 148px;
+  padding: 7px 6px;
 }
 
 .day.has-title-input {
@@ -418,13 +418,14 @@ h1 {
 }
 
 .day.has-book .cover {
-  width: 96px;
+  width: min(100%, 118px);
 }
 
 .book-in-day {
   display: grid;
-  gap: 3px;
+  gap: 2px;
   justify-items: center;
+  width: 100%;
 }
 
 .day-title-row {
@@ -433,6 +434,7 @@ h1 {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   margin-top: auto;
+  width: 100%;
 }
 
 .day-title-input {
@@ -719,14 +721,14 @@ input {
 
   .day {
     min-height: 78px;
-    padding: 5px;
+    padding: 4px;
     border-radius: 12px;
-    gap: 3px;
+    gap: 2px;
   }
 
   .day.has-book {
-    min-height: 108px;
-    padding: 4px;
+    min-height: 118px;
+    padding: 3px;
   }
 
   .cover {
@@ -735,7 +737,7 @@ input {
   }
 
   .day.has-book .cover {
-    width: 64px;
+    width: min(100%, 78px);
   }
 
   .date {
@@ -750,9 +752,9 @@ input {
   }
 
   .day-title-input {
-    min-height: 28px;
-    font-size: .68rem;
-    padding: 3px 5px;
+    min-height: 24px;
+    font-size: .64rem;
+    padding: 2px 4px;
   }
 
   .day-title-row {
@@ -843,7 +845,8 @@ input {
   }
 
   .day.has-book {
-    min-height: 104px;
+    min-height: 112px;
+    padding: 3px;
   }
 
   .cover {
@@ -851,12 +854,12 @@ input {
   }
 
   .day.has-book .cover {
-    width: 56px;
+    width: min(100%, 68px);
   }
 
   .day-title-input {
-    min-height: 26px;
-    font-size: .64rem;
-    padding: 3px 4px;
+    min-height: 22px;
+    font-size: .6rem;
+    padding: 2px 3px;
   }
 }
