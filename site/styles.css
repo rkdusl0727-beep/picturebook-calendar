@@ -71,7 +71,7 @@ button {
   width: 900px !important;
   max-width: none !important;
   min-width: 900px !important;
-  padding: 30px 34px 28px !important;
+  padding: 24px 28px 26px !important;
   border-width: 4px !important;
   border-radius: 28px !important;
 }
@@ -87,15 +87,15 @@ button {
 }
 
 .calendar-card.capture-mode .brand-input {
-  width: min(720px, calc(100% - 112px)) !important;
-  min-height: 78px !important;
+  width: min(620px, calc(100% - 112px)) !important;
+  min-height: 0 !important;
   height: auto !important;
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: clip !important;
-  font-size: 3.15rem !important;
-  line-height: 1.16 !important;
-  padding: 8px 12px !important;
+  font-size: 2.9rem !important;
+  line-height: normal !important;
+  padding: 4px 8px !important;
 }
 
 .calendar-card.capture-mode .brand-input[hidden] {
@@ -105,7 +105,7 @@ button {
 .calendar-card.capture-mode .month-frame {
   grid-template-columns: 68px 1fr 68px !important;
   margin-bottom: 20px !important;
-  padding: 16px 22px !important;
+  padding: 18px 24px !important;
   border-radius: 34px !important;
 }
 
@@ -120,23 +120,23 @@ button {
 
 .calendar-card.capture-mode .weekdays,
 .calendar-card.capture-mode .grid {
-  gap: 10px !important;
+  gap: 12px !important;
 }
 
 .calendar-card.capture-mode .weekdays span {
-  height: 58px !important;
+  height: 74px !important;
   border-radius: 16px !important;
 }
 
 .calendar-card.capture-mode .day {
-  min-height: 104px !important;
-  padding: 8px 7px !important;
+  min-height: 96px !important;
+  padding: 9px 8px !important;
   border-radius: 16px !important;
-  gap: 3px !important;
+  gap: 4px !important;
 }
 
 .calendar-card.capture-mode .day.has-book {
-  min-height: 138px !important;
+  min-height: 130px !important;
   padding: 6px 5px !important;
 }
 
@@ -147,7 +147,7 @@ button {
 
 .calendar-card.capture-mode .day.has-book .cover {
   width: 100% !important;
-  height: 114px !important;
+  height: 108px !important;
   object-fit: cover !important;
 }
 
@@ -231,13 +231,13 @@ button {
 
 .calendar-card.capture-mode .brand-title-preview {
   display: block !important;
-  width: min(720px, calc(100% - 112px)) !important;
-  min-height: 78px !important;
+  width: min(620px, calc(100% - 112px)) !important;
+  min-height: 0 !important;
   color: #d94f75 !important;
   font-weight: 900 !important;
-  font-size: 3.15rem !important;
-  line-height: 1.16 !important;
-  padding: 8px 12px !important;
+  font-size: 2.9rem !important;
+  line-height: normal !important;
+  padding: 4px 8px !important;
   text-align: center !important;
   white-space: normal !important;
   word-break: keep-all !important;
