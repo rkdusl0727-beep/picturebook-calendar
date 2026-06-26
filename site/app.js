@@ -224,14 +224,14 @@ function render() {
           ${entry.thumbnail ? `<img class="cover" src="${escapeHtml(proxiedImageUrl(entry.thumbnail))}" alt="${escapeHtml(cleanBookTitle(entry.title))}">` : '<span class="cover empty-cover">표지 없음</span>'}
         </span>
       ` : ''}
-      ${entry?.kind === 'substitute' || isNoBookInputDay ? '' : `
+      ${entry || isNoBookInputDay ? '' : `
         <span class="day-title-row">
           <input class="day-title-input" type="text" inputmode="text" autocomplete="off" value="${escapeHtml(draftTitle)}" placeholder="그림책 제목" aria-label="${dateKey} 그림책 제목">
         </span>
       `}
     `;
 
-    if (!isNoBookInputDay && entry?.kind !== 'substitute') {
+    if (!isNoBookInputDay && !entry) {
       cell.classList.add('has-title-input');
       cell.removeAttribute('role');
     }
@@ -245,7 +245,7 @@ function render() {
         return;
       }
       const input = cell.querySelector('.day-title-input');
-      const query = input?.value.trim() || '';
+      const query = input?.value.trim() || cleanBookTitle(entry?.title || '');
 
       if (query) {
         openBookModal(dateKey, query);
@@ -265,7 +265,7 @@ function render() {
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         const input = cell.querySelector('.day-title-input');
-        const query = input?.value.trim() || '';
+        const query = input?.value.trim() || cleanBookTitle(entry?.title || '');
 
         if (query) {
           openBookModal(dateKey, query);
