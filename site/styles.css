@@ -136,8 +136,9 @@ button {
 }
 
 .calendar-card.capture-mode .day.has-book {
-  min-height: 158px !important;
-  padding: 6px 5px !important;
+  align-content: stretch !important;
+  min-height: 170px !important;
+  padding: 6px 4px !important;
 }
 
 .calendar-card.capture-mode .cover {
@@ -146,9 +147,9 @@ button {
 }
 
 .calendar-card.capture-mode .day.has-book .cover {
-  width: 100% !important;
-  height: 136px !important;
-  object-fit: contain !important;
+  width: calc(100% - 6px) !important;
+  height: 146px !important;
+  object-fit: cover !important;
 }
 
 .calendar-card.capture-mode .date {
@@ -315,8 +316,9 @@ h1 {
 }
 
 .day.has-book {
-  min-height: 158px;
-  padding: 6px 5px;
+  align-content: stretch;
+  min-height: 170px;
+  padding: 6px 4px;
 }
 
 .day.has-title-input {
@@ -407,9 +409,9 @@ h1 {
 }
 
 .day.has-book .cover {
-  width: 100%;
-  height: 136px;
-  object-fit: contain;
+  width: calc(100% - 6px);
+  height: 146px;
+  object-fit: cover;
 }
 
 .book-in-day {
@@ -421,6 +423,7 @@ h1 {
 
 .day.has-book .book-in-day {
   align-self: stretch;
+  place-items: center;
 }
 
 .day-title-row {
@@ -722,7 +725,7 @@ input {
   }
 
   .day.has-book {
-    min-height: 122px;
+    min-height: 132px;
     padding: 3px 2px;
   }
 
@@ -732,9 +735,9 @@ input {
   }
 
   .day.has-book .cover {
-    width: 100%;
-    height: 100px;
-    object-fit: contain;
+    width: calc(100% - 4px);
+    height: 110px;
+    object-fit: cover;
   }
 
   .date {
@@ -845,7 +848,7 @@ input {
   }
 
   .day.has-book {
-    min-height: 112px;
+    min-height: 120px;
     padding: 3px 2px;
   }
 
@@ -854,9 +857,9 @@ input {
   }
 
   .day.has-book .cover {
-    width: 100%;
-    height: 92px;
-    object-fit: contain;
+    width: calc(100% - 4px);
+    height: 100px;
+    object-fit: cover;
   }
 
   .day-title-input {
