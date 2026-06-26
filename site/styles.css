@@ -136,7 +136,7 @@ button {
 }
 
 .calendar-card.capture-mode .day.has-book {
-  min-height: 130px !important;
+  min-height: 158px !important;
   padding: 6px 5px !important;
 }
 
@@ -147,8 +147,8 @@ button {
 
 .calendar-card.capture-mode .day.has-book .cover {
   width: 100% !important;
-  height: 108px !important;
-  object-fit: cover !important;
+  height: 136px !important;
+  object-fit: contain !important;
 }
 
 .calendar-card.capture-mode .date {
@@ -315,7 +315,7 @@ h1 {
 }
 
 .day.has-book {
-  min-height: 130px;
+  min-height: 158px;
   padding: 6px 5px;
 }
 
@@ -408,8 +408,8 @@ h1 {
 
 .day.has-book .cover {
   width: 100%;
-  height: 108px;
-  object-fit: cover;
+  height: 136px;
+  object-fit: contain;
 }
 
 .book-in-day {
@@ -722,7 +722,7 @@ input {
   }
 
   .day.has-book {
-    min-height: 102px;
+    min-height: 122px;
     padding: 3px 2px;
   }
 
@@ -733,8 +733,8 @@ input {
 
   .day.has-book .cover {
     width: 100%;
-    height: 80px;
-    object-fit: cover;
+    height: 100px;
+    object-fit: contain;
   }
 
   .date {
@@ -845,7 +845,7 @@ input {
   }
 
   .day.has-book {
-    min-height: 96px;
+    min-height: 112px;
     padding: 3px 2px;
   }
 
@@ -855,8 +855,8 @@ input {
 
   .day.has-book .cover {
     width: 100%;
-    height: 76px;
-    object-fit: cover;
+    height: 92px;
+    object-fit: contain;
   }
 
   .day-title-input {
