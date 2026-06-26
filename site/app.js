@@ -37,7 +37,7 @@ const state = {
 };
 
 const substituteImages = [
-  { title: '휴가', accent: '#8fd3c1', bg: '#eefaf7', icon: 'sun' },
+  { title: '휴가', accent: '#f49a45', bg: '#fff2e4', icon: 'sun' },
   { title: '현장학습', accent: '#b8d889', bg: '#f5fbeb', icon: 'tree' },
   { title: '교육', accent: '#8fb7f4', bg: '#eef5ff', icon: 'education' }
 ].map((item) => ({
