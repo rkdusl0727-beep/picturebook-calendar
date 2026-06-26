@@ -158,50 +158,37 @@ function render() {
   const year = state.cursor.getFullYear();
   const month = state.cursor.getMonth();
   const first = new Date(year, month, 1);
-  const start = new Date(year, month, 1 - first.getDay());
-  const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 41);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
   ensureHolidays(year);
-  ensureHolidays(start.getFullYear());
-  ensureHolidays(end.getFullYear());
   monthLabel.textContent = `${year}년 ${month + 1}월`;
   updateBookCount(year, month);
   grid.innerHTML = '';
 
-  for (let index = 0; index < 42; index += 1) {
-    const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + index);
+  let visibleCellCount = 0;
+  const leadingBlanks = getWeekdayColumn(first);
+
+  for (let blank = 0; blank < leadingBlanks; blank += 1) {
+    appendBlankDay();
+    visibleCellCount += 1;
+  }
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const date = new Date(year, month, day);
+
+    if (date.getDay() === 0 || date.getDay() === 6) {
+      continue;
+    }
+
     const dateKey = toDateKey(date);
     const entry = state.entries[dateKey];
     const draftTitle = cleanBookTitle(state.drafts[dateKey] ?? entry?.title ?? '');
     const holiday = state.holidaysByYear[date.getFullYear()]?.[dateKey];
-    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-    const isNoBookInputDay = isWeekend || Boolean(holiday);
+    const isNoBookInputDay = Boolean(holiday);
     const cell = document.createElement('div');
     cell.tabIndex = 0;
     cell.role = 'button';
     cell.className = 'day';
     cell.dataset.date = dateKey;
-
-    if (date.getMonth() !== month) {
-      cell.classList.add('outside-month');
-      cell.removeAttribute('tabindex');
-      cell.removeAttribute('role');
-      grid.append(cell);
-      continue;
-    }
-
-    if (date.getDay() === 0) {
-      cell.classList.add('sunday');
-    }
-
-    if (date.getDay() === 6) {
-      cell.classList.add('saturday');
-    }
-
-    if (isWeekend) {
-      cell.classList.add('no-entry-day');
-      cell.removeAttribute('tabindex');
-      cell.removeAttribute('role');
-    }
 
     if (holiday) {
       cell.classList.add('holiday');
@@ -237,10 +224,6 @@ function render() {
     }
 
     cell.addEventListener('click', (event) => {
-      if (isWeekend) {
-        return;
-      }
-
       if (event.target.closest('.day-title-row')) {
         return;
       }
@@ -254,10 +237,6 @@ function render() {
       }
     });
     cell.addEventListener('keydown', (event) => {
-      if (isWeekend) {
-        return;
-      }
-
       if (event.target.closest('.day-title-row')) {
         return;
       }
@@ -275,6 +254,12 @@ function render() {
       }
     });
     grid.append(cell);
+    visibleCellCount += 1;
+  }
+
+  while (visibleCellCount % 5 !== 0) {
+    appendBlankDay();
+    visibleCellCount += 1;
   }
 
   grid.querySelectorAll('.day-title-input').forEach((input) => {
@@ -343,6 +328,19 @@ function render() {
   });
 
   renderCoverResults();
+}
+
+function getWeekdayColumn(date) {
+  const day = date.getDay();
+  return day >= 1 && day <= 5 ? day - 1 : 0;
+}
+
+function appendBlankDay() {
+  const cell = document.createElement('div');
+  cell.className = 'day outside-month';
+  cell.removeAttribute('tabindex');
+  cell.removeAttribute('role');
+  grid.append(cell);
 }
 
 function focusTitleInput(input) {

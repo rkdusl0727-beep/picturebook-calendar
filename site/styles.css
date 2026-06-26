@@ -280,7 +280,7 @@ h1 {
 .weekdays,
 .grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 12px;
 }
 
@@ -300,21 +300,8 @@ h1 {
   display: grid;
   height: 74px;
   place-items: center;
-}
-
-.weekdays span:first-child {
-  color: #c7636d;
-  background: var(--pink);
-}
-
-.weekdays span:not(:first-child):not(:last-child) {
   color: #74643a;
   background: var(--pastel-yellow);
-}
-
-.weekdays span:last-child {
-  color: #418bc1;
-  background: var(--blue);
 }
 
 .day {
