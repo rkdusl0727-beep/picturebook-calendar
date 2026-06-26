@@ -64,7 +64,7 @@ async function toBook(item) {
   const imageUrl = normalizeImageUrl(item.image);
 
   return {
-    title: stripTags(item.title),
+    title: cleanBookTitle(item.title),
     authors: splitAuthors(item.author),
     publisher: item.publisher || '',
     isbn: item.isbn || '',
@@ -89,6 +89,17 @@ function normalizeOption(value, allowed, fallback) {
 
 function stripTags(value) {
   return String(value || '').replace(/<[^>]*>/g, '');
+}
+
+function cleanBookTitle(value) {
+  return stripTags(value)
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/\s*[\(\[\{（【〈《].*?[\)\]\}）】〉》]\s*/g, ' ')
+    .replace(/\s*[-–—|/]\s*(수상|선정|추천|개정|양장|보드북|세트|특별판|한정판|저자|작가).*/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
 }
 
 function splitAuthors(value) {

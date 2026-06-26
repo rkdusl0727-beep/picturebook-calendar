@@ -171,7 +171,7 @@ function render() {
     const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + index);
     const dateKey = toDateKey(date);
     const entry = state.entries[dateKey];
-    const draftTitle = state.drafts[dateKey] ?? entry?.title ?? '';
+    const draftTitle = cleanBookTitle(state.drafts[dateKey] ?? entry?.title ?? '');
     const holiday = state.holidaysByYear[date.getFullYear()]?.[dateKey];
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
     const isNoBookInputDay = isWeekend || Boolean(holiday);
@@ -221,7 +221,7 @@ function render() {
       ${holiday ? `<span class="holiday-name">${escapeHtml(holiday.localName || holiday.name)}</span>` : ''}
       ${entry ? `
         <span class="book-in-day">
-          ${entry.thumbnail ? `<img class="cover" src="${escapeHtml(proxiedImageUrl(entry.thumbnail))}" alt="${escapeHtml(entry.title)}">` : '<span class="cover empty-cover">표지 없음</span>'}
+          ${entry.thumbnail ? `<img class="cover" src="${escapeHtml(proxiedImageUrl(entry.thumbnail))}" alt="${escapeHtml(cleanBookTitle(entry.title))}">` : '<span class="cover empty-cover">표지 없음</span>'}
         </span>
       ` : ''}
       ${entry?.kind === 'substitute' || isNoBookInputDay ? '' : `
@@ -495,7 +495,10 @@ function selectCover(index) {
     return;
   }
 
-  state.entries[state.selectedDate] = book;
+  state.entries[state.selectedDate] = {
+    ...book,
+    title: cleanBookTitle(book.title)
+  };
   state.entries[state.selectedDate].updatedAt = Date.now();
   state.entries[state.selectedDate].thumbnail = proxiedImageUrl(book.thumbnail);
   delete state.deletedDates[state.selectedDate];
@@ -565,9 +568,9 @@ function renderCoverResults() {
   const resultBlock = state.searchResults.length ? `
     <div class="cover-grid">
       ${state.searchResults.map((book, index) => `
-        <button class="cover-choice" type="button" data-cover-index="${index}" title="${escapeHtml(book.title)}">
+        <button class="cover-choice" type="button" data-cover-index="${index}" title="${escapeHtml(cleanBookTitle(book.title))}">
           ${book.thumbnail ? `<img src="${escapeHtml(proxiedImageUrl(book.thumbnail))}" alt="">` : '<span class="empty-cover">표지 없음</span>'}
-          <span>${escapeHtml(book.title)}</span>
+          <span>${escapeHtml(cleanBookTitle(book.title))}</span>
         </button>
       `).join('')}
     </div>
@@ -1001,6 +1004,18 @@ function escapeHtml(value) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
+}
+
+function cleanBookTitle(value) {
+  return String(value || '')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/\s*[\(\[\{（【〈《].*?[\)\]\}）】〉》]\s*/g, ' ')
+    .replace(/\s*[-–—|/]\s*(수상|선정|추천|개정|양장|보드북|세트|특별판|한정판|저자|작가).*/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
 }
 
 function makeSubstituteImage({ title, accent, bg, icon }) {
