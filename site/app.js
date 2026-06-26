@@ -39,7 +39,7 @@ const state = {
 const substituteImages = [
   { title: '휴가', accent: '#8fd3c1', bg: '#eefaf7', icon: 'sun' },
   { title: '현장학습', accent: '#b8d889', bg: '#f5fbeb', icon: 'tree' },
-  { title: '행사', accent: '#f4c866', bg: '#fff8df', icon: 'star' }
+  { title: '교육', accent: '#8fb7f4', bg: '#eef5ff', icon: 'education' }
 ].map((item) => ({
   ...item,
   thumbnail: makeSubstituteImage(item)
@@ -1010,6 +1010,7 @@ function makeSubstituteImage({ title, accent, bg, icon }) {
     star: `<path d="M54 15l10 22 24 3-18 16 5 24-21-12-21 12 5-24-18-16 24-3 10-22Z" fill="${accent}"/>`,
     moon: `<path d="M68 73c-22 0-39-17-39-38 0-10 4-19 10-26-1 4-2 8-2 12 0 22 18 40 40 40 3 0 6 0 9-1-5 8-11 13-18 13Z" fill="${accent}"/>`,
     tree: `<path d="M54 16c9 0 16 7 16 16 8 2 14 9 14 18 0 10-8 18-18 18H42c-10 0-18-8-18-18 0-9 6-16 14-18 0-9 7-16 16-16Z" fill="${accent}"/><path d="M54 48v32" stroke="#8a6f4d" stroke-width="6" stroke-linecap="round"/>`,
+    education: `<path d="M24 28c10-5 20-5 30 0v50c-10-5-20-5-30 0Z" fill="${accent}"/><path d="M54 28c10-5 20-5 30 0v50c-10-5-20-5-30 0Z" fill="${accent}" opacity=".72"/><path d="M54 28v50" stroke="#fff" stroke-width="4" stroke-linecap="round"/><path d="M32 38h14M32 49h14M62 38h14M62 49h14" stroke="#fff" stroke-width="4" stroke-linecap="round"/><path d="M73 73l15-15 7 7-15 15-10 3Z" fill="#f4c866"/><path d="M88 58l4-4 7 7-4 4Z" fill="#d86f7f"/>`,
     gift: `<path d="M24 35h60v45H24z" fill="${accent}"/><path d="M54 35v45M24 50h60" stroke="#fff" stroke-width="6"/><path d="M54 35c-12 0-20-5-20-12 0-5 4-9 9-9 7 0 11 8 11 21Zm0 0c12 0 20-5 20-12 0-5-4-9-9-9-7 0-11 8-11 21Z" fill="none" stroke="${accent}" stroke-width="6"/>`
   }[icon];
 
