@@ -1,0 +1,6 @@
+.DS_Store
+.env
+.env.*
+naver-keys.env
+node_modules/
+dist/
