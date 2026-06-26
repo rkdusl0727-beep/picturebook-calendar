@@ -65,22 +65,18 @@ closeModal.addEventListener('click', closeBookModal);
 clearDateButton.addEventListener('click', clearSelectedDate);
 copyCalendarLinkButton.addEventListener('click', copyCalendarLink);
 newCalendarButton.addEventListener('click', createNewCalendar);
-
 bookModal.addEventListener('click', (event) => {
   if (event.target === bookModal) {
     closeBookModal();
   }
 });
-
 calendarTitle.value = localStorage.getItem(LOCAL_TITLE_KEY) || calendarTitle.value;
-
 calendarTitle.addEventListener('input', () => {
   state.titleUpdatedAt = Date.now();
   localStorage.setItem(LOCAL_TITLE_KEY, calendarTitle.value.trim() || DEFAULT_TITLE);
   localStorage.setItem(LOCAL_TITLE_UPDATED_KEY, String(state.titleUpdatedAt));
   scheduleRemoteSave();
 });
-
 render();
 loadRemoteState();
 
@@ -159,17 +155,14 @@ function changeMonth(offset) {
 
 function render() {
   clearWeekendEntries();
-
   const year = state.cursor.getFullYear();
   const month = state.cursor.getMonth();
   const first = new Date(year, month, 1);
   const start = new Date(year, month, 1 - first.getDay());
   const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 41);
-
   ensureHolidays(year);
   ensureHolidays(start.getFullYear());
   ensureHolidays(end.getFullYear());
-
   monthLabel.textContent = `${year}년 ${month + 1}월`;
   updateBookCount(year, month);
   grid.innerHTML = '';
@@ -183,7 +176,6 @@ function render() {
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
     const isNoBookInputDay = isWeekend || Boolean(holiday);
     const cell = document.createElement('div');
-
     cell.tabIndex = 0;
     cell.role = 'button';
     cell.className = 'day';
@@ -220,27 +212,21 @@ function render() {
       cell.classList.add('is-selected');
     }
 
+    if (entry?.kind === 'book') {
+      cell.classList.add('has-book');
+    }
+
     cell.innerHTML = `
       <span class="date">${date.getDate()}</span>
       ${holiday ? `<span class="holiday-name">${escapeHtml(holiday.localName || holiday.name)}</span>` : ''}
       ${entry ? `
         <span class="book-in-day">
-          ${entry.thumbnail
-            ? `<img class="cover" src="${escapeHtml(proxiedImageUrl(entry.thumbnail))}" alt="${escapeHtml(entry.title)}">`
-            : '<span class="cover empty-cover">표지 없음</span>'}
+          ${entry.thumbnail ? `<img class="cover" src="${escapeHtml(proxiedImageUrl(entry.thumbnail))}" alt="${escapeHtml(entry.title)}">` : '<span class="cover empty-cover">표지 없음</span>'}
         </span>
       ` : ''}
       ${entry?.kind === 'substitute' || isNoBookInputDay ? '' : `
         <span class="day-title-row">
-          <input
-            class="day-title-input"
-            type="text"
-            inputmode="text"
-            autocomplete="off"
-            value="${escapeHtml(draftTitle)}"
-            placeholder="그림책 제목"
-            aria-label="${dateKey} 그림책 제목"
-          >
+          <input class="day-title-input" type="text" inputmode="text" autocomplete="off" value="${escapeHtml(draftTitle)}" placeholder="그림책 제목" aria-label="${dateKey} 그림책 제목">
         </span>
       `}
     `;
@@ -258,7 +244,6 @@ function render() {
       if (event.target.closest('.day-title-row')) {
         return;
       }
-
       const input = cell.querySelector('.day-title-input');
       const query = input?.value.trim() || '';
 
@@ -268,7 +253,6 @@ function render() {
         openSubstituteModal(dateKey);
       }
     });
-
     cell.addEventListener('keydown', (event) => {
       if (isWeekend) {
         return;
@@ -280,7 +264,6 @@ function render() {
 
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
-
         const input = cell.querySelector('.day-title-input');
         const query = input?.value.trim() || '';
 
@@ -291,42 +274,33 @@ function render() {
         }
       }
     });
-
     grid.append(cell);
   }
 
   grid.querySelectorAll('.day-title-input').forEach((input) => {
     input.addEventListener('click', (event) => event.stopPropagation());
-
     input.addEventListener('focus', () => {
       state.isEditingTitle = true;
       state.selectedDate = input.closest('.day').dataset.date;
     });
-
     input.addEventListener('blur', () => {
       state.isEditingTitle = false;
-
       const dateKey = input.closest('.day').dataset.date;
       const entry = state.entries[dateKey];
 
       if (!input.value.trim() && entry?.kind !== 'substitute') {
         delete state.entries[dateKey];
         delete state.drafts[dateKey];
-
         state.deletedDates[dateKey] = Date.now();
-
         saveEntries();
         render();
       }
     });
-
     input.addEventListener('compositionstart', () => {
       state.isComposingTitle = true;
     });
-
     input.addEventListener('compositionend', () => {
       state.isComposingTitle = false;
-
       const dateKey = input.closest('.day').dataset.date;
       const draftTitle = input.value;
 
@@ -334,7 +308,6 @@ function render() {
         state.drafts[dateKey] = draftTitle;
       }
     });
-
     input.addEventListener('input', () => {
       const dateKey = input.closest('.day').dataset.date;
       const draftTitle = input.value;
@@ -346,7 +319,6 @@ function render() {
 
       delete state.drafts[dateKey];
     });
-
     input.addEventListener('keydown', (event) => {
       event.stopPropagation();
 
@@ -359,7 +331,6 @@ function render() {
       }
 
       event.preventDefault();
-
       const dateKey = input.closest('.day').dataset.date;
       const query = input.value.trim();
 
@@ -372,6 +343,15 @@ function render() {
   });
 
   renderCoverResults();
+}
+
+function focusTitleInput(input) {
+  input.focus({ preventScroll: true });
+
+  if (typeof input.setSelectionRange === 'function') {
+    const length = input.value.length;
+    input.setSelectionRange(length, length);
+  }
 }
 
 function clearWeekendEntries() {
@@ -395,7 +375,6 @@ function clearWeekendEntries() {
 function updateBookCount(year, month) {
   const count = Object.keys(state.entries).filter((date) => {
     const entryDate = new Date(date);
-
     return entryDate.getFullYear() === year
       && entryDate.getMonth() === month
       && state.entries[date]?.kind !== 'substitute';
@@ -440,16 +419,10 @@ function openBookModal(dateKey, query = '') {
   state.selectedDate = dateKey;
   state.modalQuery = query.trim();
   state.searchResults = [];
-
   const selectedBook = state.entries[dateKey];
   const searchQuery = query || selectedBook?.title || '';
-
-  modalTitle.textContent = searchQuery
-    ? `"${searchQuery}" 표지를 골라주세요`
-    : '제목을 입력해 주세요';
-
+  modalTitle.textContent = searchQuery ? `"${searchQuery}" 표지를 골라주세요` : '제목을 입력해 주세요';
   bookModal.hidden = false;
-
   render();
   renderCoverResults();
   updateClearDateButton();
@@ -464,10 +437,8 @@ function openSubstituteModal(dateKey) {
   state.selectedDate = dateKey;
   state.modalQuery = '';
   state.searchResults = [];
-
   modalTitle.textContent = `${dateKey}에 넣을 이미지를 골라주세요`;
   bookModal.hidden = false;
-
   render();
   renderCoverResults();
   updateClearDateButton();
@@ -478,7 +449,6 @@ function closeBookModal() {
   bookModal.hidden = true;
   state.modalQuery = '';
   state.searchResults = [];
-
   renderCoverResults();
   updateClearDateButton();
 }
@@ -493,10 +463,7 @@ async function searchBookCovers(query) {
   coverResults.innerHTML = '';
 
   try {
-    const response = await fetch(
-      `/api/search-books?query=${encodeURIComponent(query)}&display=8`
-    );
-
+    const response = await fetch(`/api/search-books?query=${encodeURIComponent(query)}&display=8`);
     const payload = await response.json();
 
     if (!response.ok) {
@@ -504,7 +471,6 @@ async function searchBookCovers(query) {
     }
 
     state.searchResults = payload.books || [];
-
     renderCoverResults();
     setStatus(state.searchResults.length ? '' : '검색 결과가 없습니다.');
   } catch (error) {
@@ -516,7 +482,7 @@ async function searchBookCovers(query) {
 
 function toUserSearchError(message) {
   if (String(message || '').includes('NAVER_CLIENT')) {
-    return '네이버 API 키가 아직 설정되지 않았습니다.';
+    return '네이버 API 키가 아직 설정되지 않았습니다. .env에 NAVER_CLIENT_ID와 NAVER_CLIENT_SECRET을 넣고 서버를 다시 켜야 검색됩니다.';
   }
 
   return message || '표지 검색에 실패했습니다.';
@@ -529,15 +495,11 @@ function selectCover(index) {
     return;
   }
 
-  state.entries[state.selectedDate] = {
-    ...book,
-    thumbnail: proxiedImageUrl(book.thumbnail),
-    updatedAt: Date.now()
-  };
-
+  state.entries[state.selectedDate] = book;
+  state.entries[state.selectedDate].updatedAt = Date.now();
+  state.entries[state.selectedDate].thumbnail = proxiedImageUrl(book.thumbnail);
   delete state.deletedDates[state.selectedDate];
   delete state.drafts[state.selectedDate];
-
   saveEntries();
   render();
   setStatus(`${state.selectedDate}에 표지를 넣었습니다.`);
@@ -557,10 +519,8 @@ function selectSubstitute(index) {
     thumbnail: substitute.thumbnail,
     updatedAt: Date.now()
   };
-
   delete state.deletedDates[state.selectedDate];
   delete state.drafts[state.selectedDate];
-
   saveEntries();
   render();
   setStatus(`${state.selectedDate}에 ${substitute.title} 이미지를 넣었습니다.`);
@@ -574,9 +534,7 @@ function clearSelectedDate() {
 
   delete state.entries[state.selectedDate];
   delete state.drafts[state.selectedDate];
-
   state.deletedDates[state.selectedDate] = Date.now();
-
   saveEntries();
   closeBookModal();
   render();
@@ -591,39 +549,24 @@ function renderCoverResults() {
     coverResults.innerHTML = `
       <div class="cover-grid substitute-grid">
         ${substituteImages.map((item, index) => `
-          <button
-            class="cover-choice substitute-choice"
-            type="button"
-            data-substitute-index="${index}"
-            title="${escapeHtml(item.title)}"
-          >
-            <img src="${escapeHtml(item.thumbnail)}" alt="${escapeHtml(item.title)}">
+          <button class="cover-choice substitute-choice" type="button" data-substitute-index="${index}" title="${escapeHtml(item.title)}">
+            <img src="${escapeHtml(item.thumbnail)}" alt="">
           </button>
         `).join('')}
       </div>
     `;
 
     coverResults.querySelectorAll('[data-substitute-index]').forEach((button) => {
-      button.addEventListener('click', () => {
-        selectSubstitute(Number(button.dataset.substituteIndex));
-      });
+      button.addEventListener('click', () => selectSubstitute(Number(button.dataset.substituteIndex)));
     });
-
     return;
   }
 
   const resultBlock = state.searchResults.length ? `
     <div class="cover-grid">
       ${state.searchResults.map((book, index) => `
-        <button
-          class="cover-choice"
-          type="button"
-          data-cover-index="${index}"
-          title="${escapeHtml(book.title)}"
-        >
-          ${book.thumbnail
-            ? `<img src="${escapeHtml(proxiedImageUrl(book.thumbnail))}" alt="${escapeHtml(book.title)}">`
-            : '<span class="empty-cover">표지 없음</span>'}
+        <button class="cover-choice" type="button" data-cover-index="${index}" title="${escapeHtml(book.title)}">
+          ${book.thumbnail ? `<img src="${escapeHtml(proxiedImageUrl(book.thumbnail))}" alt="">` : '<span class="empty-cover">표지 없음</span>'}
           <span>${escapeHtml(book.title)}</span>
         </button>
       `).join('')}
@@ -633,16 +576,13 @@ function renderCoverResults() {
   coverResults.innerHTML = resultBlock;
 
   coverResults.querySelectorAll('[data-cover-index]').forEach((button) => {
-    button.addEventListener('click', () => {
-      selectCover(Number(button.dataset.coverIndex));
-    });
+    button.addEventListener('click', () => selectCover(Number(button.dataset.coverIndex)));
   });
 }
 
 async function saveCalendarImage() {
   const calendar = document.querySelector('#calendar');
   const titlePreview = createTitlePreview();
-
   calendar.classList.add('capture-mode');
   calendarTitle.hidden = true;
   calendarTitle.insertAdjacentElement('afterend', titlePreview);
@@ -663,9 +603,7 @@ async function saveCalendarImage() {
       height: calendar.scrollHeight
     });
 
-    const fileName =
-      `${monthLabel.textContent.replaceAll(' ', '-')}-${calendarTitle.value || '그림책 달력'}.png`;
-
+    const fileName = `${monthLabel.textContent.replaceAll(' ', '-')}-${calendarTitle.value || '그림책 달력'}.png`;
     const blob = await canvasToBlob(canvas);
     const file = new File([blob], fileName, { type: 'image/png' });
 
@@ -675,7 +613,6 @@ async function saveCalendarImage() {
           files: [file],
           title: calendarTitle.value || '그림책 달력'
         });
-
         return;
       } catch (error) {
         if (error.name === 'AbortError') {
@@ -696,11 +633,9 @@ async function saveCalendarImage() {
     }
 
     const link = document.createElement('a');
-
     link.download = fileName;
     link.href = URL.createObjectURL(blob);
     link.click();
-
     URL.revokeObjectURL(link.href);
   } finally {
     titlePreview.remove();
@@ -711,10 +646,8 @@ async function saveCalendarImage() {
 
 function createTitlePreview() {
   const preview = document.createElement('div');
-
   preview.className = 'brand-title-preview';
-  preview.textContent = calendarTitle.value.trim() || DEFAULT_TITLE;
-
+  preview.textContent = calendarTitle.value.trim() || '그림책 달력';
   return preview;
 }
 
@@ -732,9 +665,7 @@ function canvasToBlob(canvas) {
 }
 
 function nextFrame() {
-  return new Promise((resolve) => {
-    requestAnimationFrame(resolve);
-  });
+  return new Promise((resolve) => requestAnimationFrame(() => resolve()));
 }
 
 async function saveWithFilePicker(blob, suggestedName) {
@@ -749,9 +680,7 @@ async function saveWithFilePicker(blob, suggestedName) {
       }
     ]
   });
-
   const writable = await handle.createWritable();
-
   await writable.write(blob);
   await writable.close();
 }
@@ -773,7 +702,7 @@ async function inlineCalendarImages(root) {
       const dataUrl = await imageSrcToDataUrl(image.src);
       image.src = dataUrl;
     } catch {
-      // 변환에 실패하면 원래 이미지를 유지합니다.
+      // If conversion fails, keep the original image so the screen is not disturbed.
     }
   }));
 }
@@ -789,7 +718,6 @@ async function imageSrcToDataUrl(src) {
 
   return await new Promise((resolve, reject) => {
     const reader = new FileReader();
-
     reader.addEventListener('load', () => resolve(reader.result));
     reader.addEventListener('error', reject);
     reader.readAsDataURL(blob);
@@ -821,9 +749,7 @@ async function waitForImages(root) {
 
 function loadEntries() {
   try {
-    return normalizeEntries(
-      JSON.parse(localStorage.getItem(LOCAL_ENTRIES_KEY) || '{}')
-    );
+    return normalizeEntries(JSON.parse(localStorage.getItem(LOCAL_ENTRIES_KEY) || '{}'));
   } catch {
     return {};
   }
@@ -831,9 +757,7 @@ function loadEntries() {
 
 function loadDeletedDates() {
   try {
-    return normalizeDeletedDates(
-      JSON.parse(localStorage.getItem(LOCAL_DELETED_DATES_KEY) || '{}')
-    );
+    return normalizeDeletedDates(JSON.parse(localStorage.getItem(LOCAL_DELETED_DATES_KEY) || '{}'));
   } catch {
     return {};
   }
@@ -846,21 +770,13 @@ function loadTitleUpdatedAt() {
 
 function saveEntries() {
   localStorage.setItem(LOCAL_ENTRIES_KEY, JSON.stringify(state.entries));
-  localStorage.setItem(
-    LOCAL_DELETED_DATES_KEY,
-    JSON.stringify(state.deletedDates)
-  );
-
+  localStorage.setItem(LOCAL_DELETED_DATES_KEY, JSON.stringify(state.deletedDates));
   scheduleRemoteSave();
 }
 
 async function loadRemoteState() {
   state.syncReady = true;
-
-  await syncFromRemote({
-    saveAfterMerge: hasLocalState()
-  });
-
+  await syncFromRemote({ saveAfterMerge: hasLocalState() });
   startSyncPolling();
 }
 
@@ -869,17 +785,13 @@ async function syncFromRemote({ saveAfterMerge = false } = {}) {
     const response = await fetch(SYNC_API_URL, {
       cache: 'no-store'
     });
-
     const remoteState = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      throw new Error(
-        remoteState.error || '달력 데이터를 불러오지 못했습니다.'
-      );
+      throw new Error(remoteState.error || '달력 데이터를 불러오지 못했습니다.');
     }
 
     const changed = mergeRemoteState(remoteState);
-
     persistLocalState();
 
     if (changed) {
@@ -901,7 +813,6 @@ function mergeRemoteState(remoteState) {
     entries: state.entries,
     deletedDates: state.deletedDates
   });
-
   const remoteEntries = normalizeEntries(remoteState.entries);
   const remoteDeletedDates = normalizeDeletedDates(remoteState.deletedDates);
   const remoteTitle = String(remoteState.title || '').trim() || DEFAULT_TITLE;
@@ -910,11 +821,7 @@ function mergeRemoteState(remoteState) {
 
   if (
     remoteTitleUpdatedAt > state.titleUpdatedAt
-    || (
-      !state.titleUpdatedAt
-      && remoteTitle !== DEFAULT_TITLE
-      && localTitle === DEFAULT_TITLE
-    )
+    || (!state.titleUpdatedAt && remoteTitle !== DEFAULT_TITLE && localTitle === DEFAULT_TITLE)
   ) {
     calendarTitle.value = remoteTitle;
     state.titleUpdatedAt = remoteTitleUpdatedAt || Date.now();
@@ -937,32 +844,21 @@ function mergeRemoteState(remoteState) {
     const remoteEntryTime = getEntryTime(remoteEntry);
     const localDeletedTime = normalizeTimestamp(state.deletedDates[dateKey]);
     const remoteDeletedTime = normalizeTimestamp(remoteDeletedDates[dateKey]);
-
-    const latestTime = Math.max(
-      localEntryTime,
-      remoteEntryTime,
-      localDeletedTime,
-      remoteDeletedTime
-    );
+    const latestTime = Math.max(localEntryTime, remoteEntryTime, localDeletedTime, remoteDeletedTime);
 
     if (latestTime === 0) {
       if (localEntry || remoteEntry) {
         nextEntries[dateKey] = localEntry || remoteEntry;
       }
-
       return;
     }
 
-    if (
-      latestTime === localDeletedTime
-      || latestTime === remoteDeletedTime
-    ) {
+    if (latestTime === localDeletedTime || latestTime === remoteDeletedTime) {
       nextDeletedDates[dateKey] = latestTime;
       return;
     }
 
-    const entry =
-      remoteEntryTime > localEntryTime ? remoteEntry : localEntry;
+    const entry = remoteEntryTime > localEntryTime ? remoteEntry : localEntry;
 
     if (entry) {
       nextEntries[dateKey] = {
@@ -974,7 +870,6 @@ function mergeRemoteState(remoteState) {
 
   state.entries = nextEntries;
   state.deletedDates = nextDeletedDates;
-
   persistLocalState();
 
   return previousSnapshot !== JSON.stringify({
@@ -986,25 +881,10 @@ function mergeRemoteState(remoteState) {
 }
 
 function persistLocalState() {
-  localStorage.setItem(
-    LOCAL_TITLE_KEY,
-    calendarTitle.value.trim() || DEFAULT_TITLE
-  );
-
-  localStorage.setItem(
-    LOCAL_TITLE_UPDATED_KEY,
-    String(state.titleUpdatedAt || 0)
-  );
-
-  localStorage.setItem(
-    LOCAL_ENTRIES_KEY,
-    JSON.stringify(state.entries)
-  );
-
-  localStorage.setItem(
-    LOCAL_DELETED_DATES_KEY,
-    JSON.stringify(state.deletedDates)
-  );
+  localStorage.setItem(LOCAL_TITLE_KEY, calendarTitle.value.trim() || DEFAULT_TITLE);
+  localStorage.setItem(LOCAL_TITLE_UPDATED_KEY, String(state.titleUpdatedAt || 0));
+  localStorage.setItem(LOCAL_ENTRIES_KEY, JSON.stringify(state.entries));
+  localStorage.setItem(LOCAL_DELETED_DATES_KEY, JSON.stringify(state.deletedDates));
 }
 
 function hasLocalState() {
@@ -1021,12 +901,7 @@ function startSyncPolling() {
   }
 
   state.syncInterval = setInterval(() => {
-    if (
-      document.hidden
-      || state.isEditingTitle
-      || state.isComposingTitle
-      || !state.syncReady
-    ) {
+    if (document.hidden || state.isEditingTitle || state.isComposingTitle || !state.syncReady) {
       return;
     }
 
@@ -1060,10 +935,7 @@ async function saveRemoteState() {
 
     if (!response.ok) {
       const payload = await response.json().catch(() => ({}));
-
-      throw new Error(
-        payload.error || '달력 데이터를 저장하지 못했습니다.'
-      );
+      throw new Error(payload.error || '달력 데이터를 저장하지 못했습니다.');
     }
   } catch (error) {
     console.warn(error);
@@ -1077,11 +949,7 @@ function normalizeEntries(value) {
 
   return Object.fromEntries(
     Object.entries(value)
-      .filter(([dateKey, entry]) => {
-        return /^\d{4}-\d{2}-\d{2}$/.test(dateKey)
-          && entry
-          && typeof entry === 'object';
-      })
+      .filter(([dateKey, entry]) => /^\d{4}-\d{2}-\d{2}$/.test(dateKey) && entry && typeof entry === 'object')
       .map(([dateKey, entry]) => [
         dateKey,
         {
@@ -1100,10 +968,7 @@ function normalizeDeletedDates(value) {
   return Object.fromEntries(
     Object.entries(value)
       .filter(([dateKey]) => /^\d{4}-\d{2}-\d{2}$/.test(dateKey))
-      .map(([dateKey, timestamp]) => [
-        dateKey,
-        normalizeTimestamp(timestamp)
-      ])
+      .map(([dateKey, timestamp]) => [dateKey, normalizeTimestamp(timestamp)])
       .filter(([, timestamp]) => timestamp > 0)
   );
 }
@@ -1140,19 +1005,12 @@ function escapeHtml(value) {
 
 function makeSubstituteImage({ title, accent, bg, icon }) {
   const iconMarkup = {
-    sun: `
-      <circle cx="54" cy="38" r="15" fill="${accent}"/>
-      <g stroke="${accent}" stroke-width="5" stroke-linecap="round">
-        <path d="M54 12v8M54 56v8M28 38h8M72 38h8M36 20l6 6M66 50l6 6M72 20l-6 6M42 50l-6 6"/>
-      </g>
-    `,
-    star: `
-      <path d="M54 15l10 22 24 3-18 16 5 24-21-12-21 12 5-24-18-16 24-3 10-22Z" fill="${accent}"/>
-    `,
-    tree: `
-      <path d="M54 16c9 0 16 7 16 16 8 2 14 9 14 18 0 10-8 18-18 18H42c-10 0-18-8-18-18 0-9 6-16 14-18 0-9 7-16 16-16Z" fill="${accent}"/>
-      <path d="M54 48v32" stroke="#8a6f4d" stroke-width="6" stroke-linecap="round"/>
-    `
+    sun: `<circle cx="54" cy="38" r="15" fill="${accent}"/><g stroke="${accent}" stroke-width="5" stroke-linecap="round"><path d="M54 12v8M54 56v8M28 38h8M72 38h8M36 20l6 6M66 50l6 6M72 20l-6 6M42 50l-6 6"/></g>`,
+    heart: `<path d="M54 67C35 54 25 45 25 33c0-9 7-15 15-15 6 0 11 3 14 8 3-5 8-8 14-8 8 0 15 6 15 15 0 12-10 21-29 34Z" fill="${accent}"/>`,
+    star: `<path d="M54 15l10 22 24 3-18 16 5 24-21-12-21 12 5-24-18-16 24-3 10-22Z" fill="${accent}"/>`,
+    moon: `<path d="M68 73c-22 0-39-17-39-38 0-10 4-19 10-26-1 4-2 8-2 12 0 22 18 40 40 40 3 0 6 0 9-1-5 8-11 13-18 13Z" fill="${accent}"/>`,
+    tree: `<path d="M54 16c9 0 16 7 16 16 8 2 14 9 14 18 0 10-8 18-18 18H42c-10 0-18-8-18-18 0-9 6-16 14-18 0-9 7-16 16-16Z" fill="${accent}"/><path d="M54 48v32" stroke="#8a6f4d" stroke-width="6" stroke-linecap="round"/>`,
+    gift: `<path d="M24 35h60v45H24z" fill="${accent}"/><path d="M54 35v45M24 50h60" stroke="#fff" stroke-width="6"/><path d="M54 35c-12 0-20-5-20-12 0-5 4-9 9-9 7 0 11 8 11 21Zm0 0c12 0 20-5 20-12 0-5-4-9-9-9-7 0-11 8-11 21Z" fill="none" stroke="${accent}" stroke-width="6"/>`
   }[icon];
 
   const svg = `
@@ -1160,15 +1018,7 @@ function makeSubstituteImage({ title, accent, bg, icon }) {
       <rect width="108" height="144" rx="18" fill="${bg}"/>
       <rect x="9" y="9" width="90" height="126" rx="14" fill="#fff" opacity=".72"/>
       ${iconMarkup}
-      <text
-        x="54"
-        y="117"
-        text-anchor="middle"
-        font-family="sans-serif"
-        font-size="16"
-        font-weight="800"
-        fill="#594a55"
-      >${title}</text>
+      <text x="54" y="117" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="800" fill="#594a55">${title}</text>
     </svg>
   `;
 
