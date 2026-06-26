@@ -13,6 +13,7 @@ const LOCAL_DELETED_DATES_KEY = `${STORAGE_PREFIX}:deleted-dates`;
 const LOCAL_TITLE_UPDATED_KEY = `${STORAGE_PREFIX}:title-updated-at`;
 const SYNC_API_URL = `/api/calendar-state?calendar=${encodeURIComponent(CALENDAR_ID)}`;
 const SYNC_INTERVAL_MS = 8000;
+const REMOTE_SYNC_ENABLED = false;
 
 if (calendarIdentity.shouldMigrateLegacy) {
   migrateLegacyStorage();
@@ -78,22 +79,26 @@ calendarTitle.addEventListener('input', () => {
   scheduleRemoteSave();
 });
 render();
-loadRemoteState();
+if (REMOTE_SYNC_ENABLED) {
+  loadRemoteState();
+}
 
 function getCalendarIdentity() {
   const url = new URL(window.location.href);
   const requestedId = url.searchParams.get('calendar');
-
-  if (isValidCalendarId(requestedId)) {
-    return { id: requestedId, shouldMigrateLegacy: false };
-  }
-
   const storedId = localStorage.getItem(DEFAULT_CALENDAR_ID_KEY);
-  const id = isValidCalendarId(storedId) ? storedId : createCalendarId();
+  const id = isValidCalendarId(storedId)
+    ? storedId
+    : isValidCalendarId(requestedId)
+      ? requestedId
+      : createCalendarId();
 
   localStorage.setItem(DEFAULT_CALENDAR_ID_KEY, id);
-  url.searchParams.set('calendar', id);
-  window.history.replaceState({}, '', url);
+
+  if (url.searchParams.has('calendar')) {
+    url.searchParams.delete('calendar');
+    window.history.replaceState({}, '', url);
+  }
 
   return { id, shouldMigrateLegacy: true };
 }
@@ -128,12 +133,13 @@ function migrateLegacyStorage() {
 
 async function copyCalendarLink() {
   const originalText = copyCalendarLinkButton.textContent;
+  const shareUrl = `${window.location.origin}${window.location.pathname}`;
 
   try {
-    await navigator.clipboard.writeText(window.location.href);
+    await navigator.clipboard.writeText(shareUrl);
     copyCalendarLinkButton.textContent = '주소 복사 완료';
   } catch {
-    window.prompt('아래 달력 주소를 복사해 주세요.', window.location.href);
+    window.prompt('아래 달력 주소를 복사해 주세요.', shareUrl);
   }
 
   window.setTimeout(() => {
@@ -142,9 +148,8 @@ async function copyCalendarLink() {
 }
 
 function createNewCalendar() {
-  const url = new URL(window.location.href);
-  url.searchParams.set('calendar', createCalendarId());
-  window.location.href = url.toString();
+  localStorage.setItem(DEFAULT_CALENDAR_ID_KEY, createCalendarId());
+  window.location.href = `${window.location.origin}${window.location.pathname}`;
 }
 
 function changeMonth(offset) {
