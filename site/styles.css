@@ -63,27 +63,23 @@ button {
   padding: 28px 28px 34px;
   border: 4px solid var(--pastel-pink-strong);
   border-radius: 28px;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 247, 251, .98),
-      rgba(255, 238, 245, .98)
-    );
+  background: linear-gradient(180deg, rgba(255, 247, 251, .98), rgba(255, 238, 245, .98));
   box-shadow: 0 22px 42px rgba(224, 102, 140, .18);
 }
 
 .calendar-card.capture-mode {
-  width: 820px !important;
+  width: 980px !important;
   max-width: none !important;
-  min-width: 820px !important;
-  padding: 44px 30px 40px !important;
+  min-width: 980px !important;
+  padding: 44px 36px 34px !important;
   border-width: 4px !important;
   border-radius: 28px !important;
 }
 
 .calendar-card.capture-mode .brand-row {
   gap: 10px !important;
-  margin: 0 0 26px !important;
+  min-height: 92px !important;
+  margin: 0 0 28px !important;
 }
 
 .calendar-card.capture-mode .brand-book {
@@ -91,15 +87,15 @@ button {
 }
 
 .calendar-card.capture-mode .brand-input {
-  width: min(560px, calc(100% - 112px)) !important;
-  min-height: 72px !important;
+  width: min(620px, calc(100% - 112px)) !important;
+  min-height: 88px !important;
   height: auto !important;
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: clip !important;
-  font-size: 2.22rem !important;
-  line-height: 1.2 !important;
-  padding: 8px 10px !important;
+  font-size: 2.34rem !important;
+  line-height: 1.22 !important;
+  padding: 10px 12px !important;
 }
 
 .calendar-card.capture-mode .brand-input[hidden] {
@@ -124,7 +120,7 @@ button {
 
 .calendar-card.capture-mode .weekdays,
 .calendar-card.capture-mode .grid {
-  gap: 12px !important;
+  gap: 14px !important;
 }
 
 .calendar-card.capture-mode .weekdays span {
@@ -133,15 +129,24 @@ button {
 }
 
 .calendar-card.capture-mode .day {
-  min-height: 142px !important;
-  padding: 14px 10px !important;
+  min-height: 160px !important;
+  padding: 16px 12px !important;
   border-radius: 16px !important;
-  gap: 7px !important;
+  gap: 8px !important;
+}
+
+.calendar-card.capture-mode .day.has-book {
+  min-height: 190px !important;
+  padding: 14px 10px !important;
 }
 
 .calendar-card.capture-mode .cover {
-  width: 64px !important;
+  width: 76px !important;
   border-radius: 12px !important;
+}
+
+.calendar-card.capture-mode .day.has-book .cover {
+  width: 92px !important;
 }
 
 .calendar-card.capture-mode .date {
@@ -156,24 +161,33 @@ button {
 }
 
 .calendar-card.capture-mode .day-title-input {
-  min-height: 34px !important;
-  font-size: .92rem !important;
+  min-height: 38px !important;
+  font-size: 1rem !important;
   line-height: 1.12 !important;
-  padding: 4px 8px !important;
+  padding: 5px 9px !important;
+}
+
+.calendar-card.capture-mode .day.has-book .day-title-input {
+  min-height: 34px !important;
+  font-size: .9rem !important;
+  padding: 4px 7px !important;
 }
 
 .calendar-card.capture-mode .book-count {
   flex-wrap: nowrap !important;
-  width: fit-content !important;
-  min-width: 260px !important;
-  min-height: 54px !important;
-  padding: 12px 28px !important;
+  width: 620px !important;
+  min-width: 620px !important;
+  min-height: 82px !important;
+  margin-top: 22px !important;
+  padding: 18px 38px !important;
   border-radius: 999px !important;
-  font-size: 1.08rem !important;
+  font-size: 1.36rem !important;
+  line-height: 1.26 !important;
+  text-align: center !important;
 }
 
 .calendar-card.capture-mode .book-count strong {
-  font-size: 1.24rem !important;
+  font-size: 1.72rem !important;
 }
 
 .brand-row {
@@ -215,13 +229,13 @@ button {
 
 .calendar-card.capture-mode .brand-title-preview {
   display: block !important;
-  width: min(560px, calc(100% - 112px)) !important;
-  min-height: 72px !important;
+  width: min(620px, calc(100% - 112px)) !important;
+  min-height: 88px !important;
   color: #d94f75 !important;
   font-weight: 900 !important;
-  font-size: 2.22rem !important;
-  line-height: 1.18 !important;
-  padding: 8px 10px !important;
+  font-size: 2.34rem !important;
+  line-height: 1.22 !important;
+  padding: 10px 12px !important;
   text-align: center !important;
   white-space: normal !important;
   word-break: keep-all !important;
@@ -311,6 +325,11 @@ h1 {
   position: relative;
 }
 
+.day.has-book {
+  min-height: 148px;
+  padding: 12px 10px;
+}
+
 .day.has-title-input {
   cursor: text;
 }
@@ -324,23 +343,25 @@ h1 {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin: 20px auto 0;
-  width: fit-content;
+  margin: 28px auto 0;
+  width: min(100%, 560px);
   max-width: 100%;
-  min-width: 260px;
-  min-height: 54px;
-  padding: 12px 28px;
+  min-width: 360px;
+  min-height: 72px;
+  padding: 18px 36px;
   border: 2px solid rgba(255, 214, 112, .76);
   border-radius: 999px;
   background: rgba(255, 239, 159, .92);
   color: #6f6832;
-  font-size: 1.08rem;
+  font-size: 1.34rem;
+  line-height: 1.28;
+  text-align: center;
   box-shadow: 0 10px 18px rgba(116, 91, 111, .08);
 }
 
 .book-count strong {
   color: #d94f75;
-  font-size: 1.24rem;
+  font-size: 1.68rem;
   font-weight: 900;
 }
 
@@ -395,6 +416,10 @@ h1 {
   box-shadow: 0 8px 14px rgba(116, 91, 111, .18);
 }
 
+.day.has-book .cover {
+  width: 76px;
+}
+
 .book-in-day {
   display: grid;
   gap: 5px;
@@ -404,7 +429,7 @@ h1 {
 .day-title-row {
   display: grid;
   gap: 4px;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   margin-top: auto;
 }
@@ -469,6 +494,18 @@ input {
 .secondary-button:focus-visible {
   outline: 3px solid rgba(255, 159, 185, .45);
   outline-offset: 2px;
+}
+
+.section-title {
+  color: rgba(53, 43, 53, .62);
+  display: block;
+  font-size: .82rem;
+  margin-bottom: 4px;
+}
+
+.settings-form {
+  display: grid;
+  gap: 10px;
 }
 
 .modal-backdrop {
@@ -634,7 +671,8 @@ input {
 
   .brand-row {
     gap: 6px;
-    margin-bottom: 12px;
+    min-height: 66px;
+    margin-bottom: 14px;
   }
 
   .brand-book {
@@ -642,9 +680,14 @@ input {
   }
 
   .brand-input {
-    width: min(320px, calc(100% - 76px));
-    font-size: 1.25rem;
-    padding-inline: 2px;
+    width: min(360px, calc(100% - 76px));
+    min-height: 58px;
+    font-size: 1.32rem;
+    line-height: 1.18;
+    padding: 7px 4px;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
   }
 
   .month-frame {
@@ -680,9 +723,18 @@ input {
     gap: 3px;
   }
 
+  .day.has-book {
+    min-height: 108px;
+    padding: 5px;
+  }
+
   .cover {
     width: 34px;
     border-radius: 8px;
+  }
+
+  .day.has-book .cover {
+    width: 48px;
   }
 
   .date {
@@ -702,21 +754,25 @@ input {
     padding: 5px 6px;
   }
 
+  .day-title-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .book-count {
     flex-wrap: wrap;
-    gap: 4px 6px;
+    gap: 5px 8px;
     min-width: 0;
-    width: min(100%, 360px);
-    min-height: 48px;
-    padding: 10px 14px;
-    border-radius: 22px;
-    font-size: .86rem;
+    width: min(100%, 420px);
+    min-height: 66px;
+    padding: 14px 18px;
+    border-radius: 28px;
+    font-size: 1.08rem;
     line-height: 1.25;
     text-align: center;
   }
 
   .book-count strong {
-    font-size: 1.05rem;
+    font-size: 1.38rem;
   }
 
   .save-button {
@@ -750,8 +806,10 @@ input {
   }
 
   .brand-input {
-    width: min(260px, calc(100% - 62px));
-    font-size: 1.05rem;
+    width: min(280px, calc(100% - 62px));
+    min-height: 54px;
+    font-size: 1.08rem;
+    line-height: 1.18;
   }
 
   .month-frame {
@@ -783,8 +841,16 @@ input {
     padding: 4px;
   }
 
+  .day.has-book {
+    min-height: 100px;
+  }
+
   .cover {
     width: 28px;
+  }
+
+  .day.has-book .cover {
+    width: 42px;
   }
 
   .day-title-input {
