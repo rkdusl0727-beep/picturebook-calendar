@@ -86,19 +86,16 @@ if (REMOTE_SYNC_ENABLED) {
 function getCalendarIdentity() {
   const url = new URL(window.location.href);
   const requestedId = url.searchParams.get('calendar');
+
+  if (isValidCalendarId(requestedId)) {
+    localStorage.setItem(DEFAULT_CALENDAR_ID_KEY, requestedId);
+    return { id: requestedId, shouldMigrateLegacy: false };
+  }
+
   const storedId = localStorage.getItem(DEFAULT_CALENDAR_ID_KEY);
-  const id = isValidCalendarId(storedId)
-    ? storedId
-    : isValidCalendarId(requestedId)
-      ? requestedId
-      : createCalendarId();
+  const id = isValidCalendarId(storedId) ? storedId : createCalendarId();
 
   localStorage.setItem(DEFAULT_CALENDAR_ID_KEY, id);
-
-  if (url.searchParams.has('calendar')) {
-    url.searchParams.delete('calendar');
-    window.history.replaceState({}, '', url);
-  }
 
   return { id, shouldMigrateLegacy: true };
 }
@@ -133,7 +130,7 @@ function migrateLegacyStorage() {
 
 async function copyCalendarLink() {
   const originalText = copyCalendarLinkButton.textContent;
-  const shareUrl = `${window.location.origin}${window.location.pathname}`;
+  const shareUrl = window.location.href;
 
   try {
     await navigator.clipboard.writeText(shareUrl);
@@ -148,8 +145,11 @@ async function copyCalendarLink() {
 }
 
 function createNewCalendar() {
-  localStorage.setItem(DEFAULT_CALENDAR_ID_KEY, createCalendarId());
-  window.location.href = `${window.location.origin}${window.location.pathname}`;
+  const url = new URL(window.location.href);
+  const nextId = createCalendarId();
+  localStorage.setItem(DEFAULT_CALENDAR_ID_KEY, nextId);
+  url.searchParams.set('calendar', nextId);
+  window.location.href = url.toString();
 }
 
 function changeMonth(offset) {
