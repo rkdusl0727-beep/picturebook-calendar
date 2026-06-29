@@ -75,6 +75,18 @@ function calendarStateKey(calendarId) {
 
 async function getCalendarStore() {
   const { getStore } = await import('@netlify/blobs');
+  const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID;
+  const token = process.env.NETLIFY_BLOBS_TOKEN
+    || process.env.NETLIFY_AUTH_TOKEN
+    || process.env.NETLIFY_API_TOKEN;
+
+  if (siteID && token) {
+    return getStore({
+      name: STORE_NAME,
+      siteID,
+      token
+    });
+  }
 
   return getStore(STORE_NAME);
 }
