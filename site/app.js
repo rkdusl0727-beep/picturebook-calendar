@@ -87,21 +87,35 @@ function getCalendarIdentity() {
   const url = new URL(window.location.href);
   const requestedId = url.searchParams.get('calendar');
 
-  if (isValidCalendarId(requestedId)) {
+  if (isValidCalendarId(requestedId) && hasStoredCalendar(requestedId)) {
     localStorage.setItem(DEFAULT_CALENDAR_ID_KEY, requestedId);
     return { id: requestedId, shouldMigrateLegacy: false };
   }
 
   const storedId = localStorage.getItem(DEFAULT_CALENDAR_ID_KEY);
-  const id = isValidCalendarId(storedId) ? storedId : createCalendarId();
+  const id = isValidCalendarId(storedId)
+    ? storedId
+    : createCalendarId();
 
   localStorage.setItem(DEFAULT_CALENDAR_ID_KEY, id);
+
+  if (isValidCalendarId(requestedId) && !hasStoredCalendar(requestedId)) {
+    url.searchParams.delete('calendar');
+    window.history.replaceState({}, '', url);
+  }
 
   return { id, shouldMigrateLegacy: true };
 }
 
 function isValidCalendarId(value) {
   return /^[A-Za-z0-9_-]{20,80}$/.test(String(value || ''));
+}
+
+function hasStoredCalendar(id) {
+  const prefix = `picture-book-calendar:${id}`;
+  return localStorage.getItem(`${prefix}:title`) !== null
+    || localStorage.getItem(`${prefix}:entries`) !== null
+    || localStorage.getItem(`${prefix}:deleted-dates`) !== null;
 }
 
 function createCalendarId() {
@@ -130,7 +144,7 @@ function migrateLegacyStorage() {
 
 async function copyCalendarLink() {
   const originalText = copyCalendarLinkButton.textContent;
-  const shareUrl = window.location.href;
+  const shareUrl = `${window.location.origin}${window.location.pathname}`;
 
   try {
     await navigator.clipboard.writeText(shareUrl);
