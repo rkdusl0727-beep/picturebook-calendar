@@ -92,17 +92,20 @@ function getCalendarIdentity() {
     return { id: requestedId, shouldMigrateLegacy: false };
   }
 
+  if (isValidCalendarId(requestedId)) {
+    const id = createCalendarId();
+    localStorage.setItem(DEFAULT_CALENDAR_ID_KEY, id);
+    url.searchParams.delete('calendar');
+    window.history.replaceState({}, '', url);
+    return { id, shouldMigrateLegacy: false };
+  }
+
   const storedId = localStorage.getItem(DEFAULT_CALENDAR_ID_KEY);
   const id = isValidCalendarId(storedId)
     ? storedId
     : createCalendarId();
 
   localStorage.setItem(DEFAULT_CALENDAR_ID_KEY, id);
-
-  if (isValidCalendarId(requestedId) && !hasStoredCalendar(requestedId)) {
-    url.searchParams.delete('calendar');
-    window.history.replaceState({}, '', url);
-  }
 
   return { id, shouldMigrateLegacy: true };
 }
