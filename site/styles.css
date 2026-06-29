@@ -126,7 +126,7 @@ button {
 .calendar-card.capture-mode .weekdays span {
   height: 74px !important;
   border-radius: 16px !important;
-  font-size: 1.32rem !important;
+  font-size: 1.72rem !important;
   font-weight: 900 !important;
 }
 
@@ -305,7 +305,7 @@ h1 {
   place-items: center;
   color: #74643a;
   background: var(--pastel-yellow);
-  font-size: 1.32rem;
+  font-size: 1.72rem;
   font-weight: 900;
 }
 
@@ -721,7 +721,7 @@ input {
   .weekdays span {
     height: 44px;
     border-radius: 12px;
-    font-size: 1rem;
+    font-size: 1.24rem;
   }
 
   .day {
@@ -851,7 +851,7 @@ input {
   .weekdays span {
     height: 38px;
     border-radius: 10px;
-    font-size: .92rem;
+    font-size: 1.08rem;
   }
 
   .day {
