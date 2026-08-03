@@ -1,4 +1,5 @@
 const NAVER_BOOK_SEARCH_URL = 'https://openapi.naver.com/v1/search/book.json';
+const GOOGLE_BOOK_SEARCH_URL = 'https://www.googleapis.com/books/v1/volumes';
 
 export async function handler(event) {
   if (event.httpMethod && event.httpMethod !== 'GET') {
@@ -8,14 +9,9 @@ export async function handler(event) {
   const clientId = process.env.NAVER_CLIENT_ID;
   const clientSecret = process.env.NAVER_CLIENT_SECRET;
 
-  if (!clientId || !clientSecret) {
-    return json(500, {
-      error: 'NAVER_CLIENT_ID 또는 NAVER_CLIENT_SECRET 환경변수가 설정되지 않았습니다.'
-    });
-  }
-
   const params = event.queryStringParameters || {};
   const query = String(params.query || '').trim();
+  const display = normalizeNumber(params.display, 1, 100, 10);
 
   if (!query) {
     return json(400, { error: '검색어를 입력해 주세요.' });
@@ -25,39 +21,104 @@ export async function handler(event) {
     return json(400, { error: '검색어는 100자 이하로 입력해 주세요.' });
   }
 
+  if (clientId && clientSecret) {
+    const naverResult = await searchNaverBooks({
+      clientId,
+      clientSecret,
+      query,
+      sort: normalizeOption(params.sort, ['sim', 'date'], 'sim'),
+      start: normalizeNumber(params.start, 1, 1000, 1),
+      display
+    });
+
+    if (naverResult.ok) {
+      return json(200, naverResult.body);
+    }
+
+    if (!shouldFallbackToGoogle(naverResult.error)) {
+      return json(naverResult.statusCode, {
+        error: naverResult.error || '네이버 책 검색 요청에 실패했습니다.'
+      });
+    }
+  }
+
+  const googleResult = await searchGoogleBooks(query, display);
+  return json(200, googleResult);
+}
+
+async function searchNaverBooks({ clientId, clientSecret, query, sort, start, display }) {
   const searchParams = new URLSearchParams({
     query,
-    sort: normalizeOption(params.sort, ['sim', 'date'], 'sim'),
-    start: normalizeNumber(params.start, 1, 1000, 1),
-    display: normalizeNumber(params.display, 1, 100, 10)
+    sort,
+    start,
+    display
   });
 
-  const naverResponse = await fetch(`${NAVER_BOOK_SEARCH_URL}?${searchParams.toString()}`, {
+  const response = await fetch(`${NAVER_BOOK_SEARCH_URL}?${searchParams.toString()}`, {
     headers: {
       'X-Naver-Client-Id': clientId,
       'X-Naver-Client-Secret': clientSecret
     }
   });
 
-  const payload = await naverResponse.json().catch(() => ({}));
+  const payload = await response.json().catch(() => ({}));
 
-  if (!naverResponse.ok) {
-    return json(naverResponse.status, {
+  if (!response.ok) {
+    return {
+      ok: false,
+      statusCode: response.status,
       error: payload.errorMessage || payload.message || '네이버 책 검색 요청에 실패했습니다.'
-    });
+    };
   }
 
   const books = await Promise.all((payload.items || []).map(toBook));
 
-  return json(200, {
+  return {
+    ok: true,
+    body: {
+      source: 'naver',
+      meta: {
+        total: payload.total,
+        start: payload.start,
+        display: payload.display,
+        lastBuildDate: payload.lastBuildDate
+      },
+      books
+    }
+  };
+}
+
+async function searchGoogleBooks(query, display) {
+  const params = new URLSearchParams({
+    q: query,
+    langRestrict: 'ko',
+    printType: 'books',
+    maxResults: normalizeNumber(display, 1, 40, 10)
+  });
+
+  const response = await fetch(`${GOOGLE_BOOK_SEARCH_URL}?${params.toString()}`);
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    return {
+      source: 'google',
+      meta: { total: 0, start: 1, display: 0 },
+      books: [],
+      notice: payload.error?.message || '대체 책 검색 요청에 실패했습니다.'
+    };
+  }
+
+  const books = await Promise.all((payload.items || []).map(toGoogleBook));
+
+  return {
+    source: 'google',
     meta: {
-      total: payload.total,
-      start: payload.start,
-      display: payload.display,
-      lastBuildDate: payload.lastBuildDate
+      total: payload.totalItems || books.length,
+      start: 1,
+      display: books.length
     },
     books
-  });
+  };
 }
 
 async function toBook(item) {
@@ -75,6 +136,43 @@ async function toBook(item) {
     publishedAt: item.pubdate || '',
     discount: item.discount || ''
   };
+}
+
+async function toGoogleBook(item) {
+  const info = item.volumeInfo || {};
+  const imageUrl = normalizeImageUrl(
+    info.imageLinks?.thumbnail
+      || info.imageLinks?.smallThumbnail
+      || ''
+  );
+
+  return {
+    title: cleanBookTitle(info.title || ''),
+    authors: Array.isArray(info.authors) ? info.authors : [],
+    publisher: info.publisher || '',
+    isbn: findGoogleIsbn(info.industryIdentifiers),
+    thumbnail: await imageToDataUrl(imageUrl),
+    originalThumbnail: imageUrl,
+    url: info.infoLink || '',
+    contents: stripTags(info.description || ''),
+    publishedAt: info.publishedDate || '',
+    discount: ''
+  };
+}
+
+function shouldFallbackToGoogle(message) {
+  return /invalid search api|존재하지 않는 검색 api|검색 api/i.test(String(message || ''));
+}
+
+function findGoogleIsbn(identifiers) {
+  if (!Array.isArray(identifiers)) {
+    return '';
+  }
+
+  return identifiers
+    .map((item) => item.identifier)
+    .filter(Boolean)
+    .join(' ');
 }
 
 function normalizeNumber(value, min, max, fallback) {
