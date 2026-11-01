@@ -40,7 +40,8 @@ const state = {
 const substituteImages = [
   { title: '휴가', accent: '#f49a45', bg: '#fff2e4', icon: 'sun' },
   { title: '현장학습', accent: '#b8d889', bg: '#f5fbeb', icon: 'tree' },
-  { title: '교육', accent: '#8fb7f4', bg: '#eef5ff', icon: 'education' }
+  { title: '교육', accent: '#8fb7f4', bg: '#eef5ff', icon: 'education' },
+  { title: '공휴일', accent: '#e97796', bg: '#fff0f5', icon: 'holiday' }
 ].map((item) => ({
   ...item,
   thumbnail: makeSubstituteImage(item)
@@ -237,7 +238,7 @@ function render() {
         return;
       }
       const input = cell.querySelector('.day-title-input');
-      const query = input?.value.trim() || cleanBookTitle(entry?.title || '');
+      const query = entry?.kind === 'substitute' ? '' : input?.value.trim() || cleanBookTitle(entry?.title || '');
 
       if (query) {
         openBookModal(dateKey, query);
@@ -253,7 +254,7 @@ function render() {
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         const input = cell.querySelector('.day-title-input');
-        const query = input?.value.trim() || cleanBookTitle(entry?.title || '');
+        const query = entry?.kind === 'substitute' ? '' : input?.value.trim() || cleanBookTitle(entry?.title || '');
 
         if (query) {
           openBookModal(dateKey, query);
@@ -560,7 +561,7 @@ function renderCoverResults() {
       <div class="cover-grid substitute-grid">
         ${substituteImages.map((item, index) => `
           <button class="cover-choice substitute-choice" type="button" data-substitute-index="${index}" title="${escapeHtml(item.title)}">
-            <img src="${escapeHtml(item.thumbnail)}" alt="">
+            <img src="${escapeHtml(item.thumbnail)}" alt="${escapeHtml(item.title)}">
           </button>
         `).join('')}
       </div>
@@ -1033,6 +1034,7 @@ function makeSubstituteImage({ title, accent, bg, icon }) {
     moon: `<path d="M68 73c-22 0-39-17-39-38 0-10 4-19 10-26-1 4-2 8-2 12 0 22 18 40 40 40 3 0 6 0 9-1-5 8-11 13-18 13Z" fill="${accent}"/>`,
     tree: `<path d="M54 16c9 0 16 7 16 16 8 2 14 9 14 18 0 10-8 18-18 18H42c-10 0-18-8-18-18 0-9 6-16 14-18 0-9 7-16 16-16Z" fill="${accent}"/><path d="M54 48v32" stroke="#8a6f4d" stroke-width="6" stroke-linecap="round"/>`,
     education: `<path d="M24 28c10-5 20-5 30 0v50c-10-5-20-5-30 0Z" fill="${accent}"/><path d="M54 28c10-5 20-5 30 0v50c-10-5-20-5-30 0Z" fill="${accent}" opacity=".72"/><path d="M54 28v50" stroke="#fff" stroke-width="4" stroke-linecap="round"/><path d="M32 38h14M32 49h14M62 38h14M62 49h14" stroke="#fff" stroke-width="4" stroke-linecap="round"/><path d="M73 73l15-15 7 7-15 15-10 3Z" fill="#f4c866"/><path d="M88 58l4-4 7 7-4 4Z" fill="#d86f7f"/>`,
+    holiday: `<rect x="24" y="24" width="60" height="56" rx="8" fill="${accent}"/><path d="M24 42h60" stroke="#fff" stroke-width="3"/><path d="M38 18v14M70 18v14" stroke="${accent}" stroke-width="6" stroke-linecap="round"/><path d="m54 49 4 8 9 1-7 6 2 9-8-5-8 5 2-9-7-6 9-1Z" fill="#fff"/>`,
     gift: `<path d="M24 35h60v45H24z" fill="${accent}"/><path d="M54 35v45M24 50h60" stroke="#fff" stroke-width="6"/><path d="M54 35c-12 0-20-5-20-12 0-5 4-9 9-9 7 0 11 8 11 21Zm0 0c12 0 20-5 20-12 0-5-4-9-9-9-7 0-11 8-11 21Z" fill="none" stroke="${accent}" stroke-width="6"/>`
   }[icon];
 
